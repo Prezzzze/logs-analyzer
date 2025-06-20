@@ -538,6 +538,11 @@
         <button onclick="hideInstallBanner()" style="background: transparent; color: white;">✕</button>
     </div>
 
+    <!-- Bouton d'installation manuel (toujours visible) -->
+    <div id="manualInstallBtn" style="position: fixed; top: 70px; right: 20px; z-index: 1001; background: #27ae60; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-size: 14px; display: block;">
+        📱 Installer PWA
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🔍 Analyseur de Logs ClaimCenter</h1>
@@ -672,6 +677,23 @@
             e.preventDefault();
             deferredPrompt = e;
             document.getElementById('installBanner').classList.add('show');
+            console.log('🎯 beforeinstallprompt déclenché');
+        });
+
+        // Gestion du bouton d'installation manuel
+        document.getElementById('manualInstallBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const choiceResult = await deferredPrompt.userChoice;
+                console.log('Choix utilisateur:', choiceResult.outcome);
+                if (choiceResult.outcome === 'accepted') {
+                    document.getElementById('manualInstallBtn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                // Fallback pour les navigateurs qui ne supportent pas beforeinstallprompt
+                alert('🔧 Installation PWA:\n\n• Chrome: Menu → Plus d\'outils → Créer un raccourci\n• Edge: URL bar → Icône app\n• Mobile: Menu → Ajouter à l\'écran d\'accueil');
+            }
         });
 
         function installPWA() {
@@ -680,6 +702,7 @@
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('PWA installée');
+                        document.getElementById('manualInstallBtn').style.display = 'none';
                     }
                     deferredPrompt = null;
                     hideInstallBanner();
@@ -690,6 +713,13 @@
         function hideInstallBanner() {
             document.getElementById('installBanner').classList.remove('show');
         }
+
+        // Cacher le bouton si l'app est déjà installée
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA installée !');
+            document.getElementById('installBanner').classList.remove('show');
+            document.getElementById('manualInstallBtn').style.display = 'none';
+        });
 
         // Service Worker Registration (version corrigée)
         if ('serviceWorker' in navigator) {
