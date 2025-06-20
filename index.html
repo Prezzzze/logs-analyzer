@@ -534,15 +534,15 @@
 
         <div class="main-content">
             <div class="search-section">
-                <h2>🌐 Récupération depuis Kibana</h2>
-                <p>Configure tes critères pour récupérer les logs depuis Kibana et les analyser ici</p>
+                <h2>🔍 Récupération depuis Elasticsearch</h2>
+                <p>API directe : <code>elasticsearch.maafprod.e-corail.com:9220/maaf-bigdata-kafka-production-*</code></p>
                 
-                <div style="background: rgba(52, 152, 219, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #3498db;">
-                    <h4>🔧 Gestion CORS automatique :</h4>
+                <div style="background: rgba(39, 174, 96, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #27ae60;">
+                    <h4>✅ URL API directe configurée :</h4>
                     <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9rem;">
-                        <li><strong>Mode CORS</strong> : Essaie de lire les données (idéal)</li>
-                        <li><strong>Mode no-cors</strong> : Contournement si CORS bloque (fallback)</li>
-                        <li><strong>Test automatique</strong> de 6 APIs Kibana différentes</li>
+                        <li><strong>Index</strong> : maaf-bigdata-kafka-production-*</li>
+                        <li><strong>Endpoint</strong> : _search</li>
+                        <li><strong>Gestion CORS</strong> automatique (cors + no-cors fallback)</li>
                     </ul>
                 </div>
                 
@@ -675,10 +675,9 @@
     </div>
 
     <script>
-        // Configuration PWA et URL de base
+        // Configuration avec l'URL API directe
         const CONFIG = {
-            KIBANA_DISCOVER_BASE: 'https://kibana-basic.covea.priv:5621/s/openshift/app/discover#/',
-            INDEX: 'covea-openshift-v4'
+            ES_API_URL: 'http://elasticsearch.maafprod.e-corail.com:9220/maaf-bigdata-kafka-production-*/_search'
         };
 
         let logData = [];
@@ -784,17 +783,17 @@
             }
         }
 
-        // Fonction principale de recherche - Test des APIs Kibana réelles
+        // Fonction principale de recherche - API Elasticsearch directe
         async function searchLogs() {
             const timeRange = document.getElementById('timeRange').value;
             const logLevel = document.getElementById('logLevel').value;
             const keyword = document.getElementById('searchKeyword').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
 
-            showStatus('🔄 Test des APIs Kibana...', 'loading');
+            showStatus('🔄 Récupération des logs depuis Elasticsearch...', 'loading');
             
             try {
-                const logs = await testKibanaAPIs(timeRange, logLevel, keyword, maxResults);
+                const logs = await fetchLogsFromElasticsearch(timeRange, logLevel, keyword, maxResults);
                 
                 if (logs && logs.length > 0) {
                     logData = logs;
@@ -807,187 +806,34 @@
             } catch (error) {
                 console.error('Erreur de récupération:', error);
                 showStatus(`❌ Erreur: ${error.message}`, 'error');
+                
+                // Afficher les solutions
+                setTimeout(() => {
+                    const statusDiv = document.getElementById('statusSection');
+                    statusDiv.innerHTML += `
+                        <div style="margin-top: 15px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 8px;">
+                            <h4>💡 Solutions :</h4>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Vérifiez votre connexion au réseau interne</li>
+                                <li>Essayez de réduire la période de recherche</li>
+                                <li>Utilisez l'import de fichiers en alternative</li>
+                                <li>Contactez l'administrateur Elasticsearch si le problème persiste</li>
+                            </ul>
+                        </div>
+                    `;
+                }, 500);
             }
         }
 
-        async function testKibanaAPIs(timeRange, logLevel, keyword, maxResults) {
-            const baseUrl = 'https://kibana-basic.covea.priv:5621';
-            const space = 'openshift';
-            const index = 'covea-openshift-v4';
-            
-            // Construction de la requête Elasticsearch
-            const esQuery = buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults, index);
-            
-            // APIs à tester dans l'ordre de probabilité
-            const apis = [
-                // API 1: Console Proxy avec space
-                {
-                    url: `${baseUrl}/s/${space}/api/console/proxy`,
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'kbn-xsrf': 'true',
-                        'kbn-version': '8.0.0'
-                    },
-                    body: JSON.stringify({
-                        path: `/${index}/_search`,
-                        method: 'POST',
-                        body: esQuery
-                    }),
-                    name: 'Console Proxy (avec space)'
-                },
-                
-                // API 2: Console Proxy sans space
-                {
-                    url: `${baseUrl}/api/console/proxy`,
-                    method: 'POST', 
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'kbn-xsrf': 'true'
-                    },
-                    body: JSON.stringify({
-                        path: `/${index}/_search`,
-                        method: 'POST',
-                        body: esQuery
-                    }),
-                    name: 'Console Proxy (sans space)'
-                },
-                
-                // API 3: Search API avec space
-                {
-                    url: `${baseUrl}/s/${space}/api/search`,
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'kbn-xsrf': 'true'
-                    },
-                    body: JSON.stringify({
-                        index: index,
-                        body: esQuery
-                    }),
-                    name: 'Search API (avec space)'
-                },
-                
-                // API 4: Internal search
-                {
-                    url: `${baseUrl}/internal/search/es`,
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'kbn-xsrf': 'true'
-                    },
-                    body: JSON.stringify({
-                        index: index,
-                        body: esQuery
-                    }),
-                    name: 'Internal Search'
-                },
-                
-                // API 5: Saved Objects Find
-                {
-                    url: `${baseUrl}/s/${space}/api/saved_objects/_find`,
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    name: 'Saved Objects Find'
-                },
-                
-                // API 6: Data views
-                {
-                    url: `${baseUrl}/s/${space}/api/data_views`,
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    name: 'Data Views API'
-                }
-            ];
-            
-            console.log('🎯 Test de', apis.length, 'APIs Kibana possibles...');
-            
-            for (const api of apis) {
-                try {
-                    console.log(`🌐 Test: ${api.name} - ${api.url}`);
-                    
-                    // ÉTAPE 1: Essayer en mode CORS normal (pour lire les données)
-                    const corsOptions = {
-                        method: api.method,
-                        headers: api.headers,
-                        mode: 'cors',  // ✅ Mode normal pour lire les données
-                        credentials: 'include'
-                    };
-                    
-                    if (api.body) {
-                        corsOptions.body = api.body;
-                    }
-                    
-                    try {
-                        const response = await fetch(api.url, corsOptions);
-                        console.log(`📡 ${api.name} (CORS): ${response.status} ${response.statusText}`);
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            console.log('✅ Données reçues (CORS):', data);
-                            
-                            const logs = parseAPIResponse(data, api.name);
-                            if (logs.length > 0) {
-                                console.log(`🎉 SUCCÈS avec ${api.name} (CORS)! ${logs.length} logs trouvés`);
-                                return logs;
-                            }
-                        }
-                    } catch (corsError) {
-                        console.log(`❌ ${api.name} (CORS): ${corsError.message}`);
-                        
-                        // ÉTAPE 2: Si CORS échoue, essayer en mode no-cors (sans lecture)
-                        if (corsError.message.includes('CORS') || corsError.message.includes('cross-origin')) {
-                            console.log(`🔄 Tentative ${api.name} en mode no-cors...`);
-                            
-                            const noCorsOptions = {
-                                method: api.method,
-                                mode: 'no-cors',  // ✅ Contournement CORS
-                                credentials: 'include',
-                                // Headers limités en mode no-cors
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            };
-                            
-                            if (api.body) {
-                                noCorsOptions.body = api.body;
-                            }
-                            
-                            try {
-                                const noCorsResponse = await fetch(api.url, noCorsOptions);
-                                console.log(`📡 ${api.name} (no-cors): Request sent (response opaque)`);
-                                
-                                // Avec no-cors, on ne peut pas lire la réponse
-                                // Mais on peut au moins savoir que l'API existe
-                                console.log(`⚠️ ${api.name}: API accessible mais données non lisibles (mode no-cors)`);
-                                
-                            } catch (noCorsError) {
-                                console.log(`❌ ${api.name} (no-cors): ${noCorsError.message}`);
-                            }
-                        }
-                    }
-                    
-                } catch (error) {
-                    console.log(`❌ ${api.name}: ${error.message}`);
-                }
-            }
-            
-            throw new Error('Aucune API Kibana accessible. Utilisez l\'export CSV ou une extension anti-CORS.');
-        }
-
-        function buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults, index) {
-            const query = {
+        async function fetchLogsFromElasticsearch(timeRange, logLevel, keyword, maxResults) {
+            // Construction de la requête Elasticsearch pour l'index maaf-bigdata-kafka-production-*
+            const esQuery = {
                 size: maxResults,
                 sort: [{"@timestamp": {"order": "desc"}}],
                 query: {
                     bool: {
                         must: [
-                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}},
-                            {"term": {"kubernetes.labels.environment": "prod"}}
+                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}}
                         ]
                     }
                 }
@@ -996,11 +842,11 @@
             // Ajouter le filtre de niveau si spécifié
             if (logLevel !== 'ALL') {
                 if (logLevel === 'ERROR') {
-                    query.query.bool.must.push({
+                    esQuery.query.bool.must.push({
                         "terms": {"log.level": ["ERROR", "FATAL"]}
                     });
                 } else {
-                    query.query.bool.must.push({
+                    esQuery.query.bool.must.push({
                         "term": {"log.level": logLevel}
                     });
                 }
@@ -1008,50 +854,90 @@
 
             // Ajouter le filtre par mot-clé si spécifié
             if (keyword) {
-                query.query.bool.must.push({
+                esQuery.query.bool.must.push({
                     "wildcard": {"message": `*${keyword}*`}
                 });
             }
 
-            console.log('🔍 Requête ES construite:', JSON.stringify(query, null, 2));
-            return query;
+            console.log('🔍 Requête ES construite:', JSON.stringify(esQuery, null, 2));
+            console.log('🌐 URL API:', CONFIG.ES_API_URL);
+
+            // Essayer d'abord en mode CORS
+            try {
+                const response = await fetch(CONFIG.ES_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(esQuery),
+                    mode: 'cors',
+                    credentials: 'include'
+                });
+
+                console.log(`📡 Elasticsearch (CORS): ${response.status} ${response.statusText}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Données reçues:', data);
+                    return parseElasticsearchResponse(data);
+                } else {
+                    console.log('❌ Erreur HTTP:', response.status, response.statusText);
+                    throw new Error(`Elasticsearch responded with ${response.status}: ${response.statusText}`);
+                }
+
+            } catch (corsError) {
+                console.log(`❌ Erreur CORS: ${corsError.message}`);
+                
+                // Essayer en mode no-cors comme fallback
+                try {
+                    console.log('🔄 Tentative en mode no-cors...');
+                    
+                    const noCorsResponse = await fetch(CONFIG.ES_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(esQuery),
+                        mode: 'no-cors'
+                    });
+                    
+                    console.log('📡 Requête no-cors envoyée (réponse opaque)');
+                    throw new Error('Mode no-cors utilisé - impossible de lire les données. Utilisez une extension anti-CORS ou l\'export de fichiers.');
+                    
+                } catch (noCorsError) {
+                    throw new Error(`Impossible de se connecter à Elasticsearch: ${corsError.message}`);
+                }
+            }
         }
 
-        function parseAPIResponse(data, apiName) {
-            const logs = [];
-            
-            try {
-                // Parser selon le type d'API
-                if (apiName.includes('Console Proxy') || apiName.includes('Search')) {
-                    // Réponse Elasticsearch standard
-                    if (data.hits && data.hits.hits) {
-                        for (const hit of data.hits.hits) {
-                            logs.push(convertToLogFormat(hit._source));
-                        }
-                    }
-                } else if (apiName.includes('Saved Objects')) {
-                    // Réponse Saved Objects
-                    if (data.saved_objects) {
-                        console.log('📋 Saved objects trouvés:', data.saved_objects.length);
-                    }
-                } else if (apiName.includes('Data Views')) {
-                    // Réponse Data Views
-                    if (data.data_view) {
-                        console.log('📋 Data views disponibles:', data.data_view);
-                    }
-                }
-                
-                // Parser générique si structure inconnue
-                if (logs.length === 0 && data.hits) {
-                    console.log('🔄 Parsing générique...');
-                    // Continuer avec d'autres structures possibles
-                }
-                
-            } catch (error) {
-                console.error('❌ Erreur parsing réponse:', error);
+        function parseElasticsearchResponse(esResponse) {
+            if (!esResponse.hits || !esResponse.hits.hits) {
+                throw new Error('Réponse Elasticsearch invalide - structure attendue non trouvée');
             }
-            
-            return logs;
+
+            console.log(`📊 ${esResponse.hits.hits.length} hits trouvés sur ${esResponse.hits.total.value || esResponse.hits.total} total`);
+
+            return esResponse.hits.hits.map((hit, index) => {
+                const source = hit._source;
+                const timestamp = source['@timestamp'] || source.timestamp || new Date().toISOString();
+                const level = source.log?.level || source.level || source.severity || 'INFO';
+                const message = source.message || source.msg || JSON.stringify(source);
+                const logger = source.logger || source.class || source.component || source.kubernetes?.container?.name || 'Unknown';
+
+                return {
+                    timestamp: timestamp,
+                    level: level.toUpperCase(),
+                    logger: logger,
+                    message: message,
+                    originalLine: JSON.stringify(source),
+                    fileName: 'Elasticsearch',
+                    lineNumber: index + 1,
+                    errorType: detectErrorType(message),
+                    severity: getSeverity(level.toUpperCase()),
+                    _source: source
+                };
+            });
         }
 
         function buildKibanaDiscoverUrl(timeRange, logLevel, keyword) {
