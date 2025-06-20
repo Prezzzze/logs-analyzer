@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#3498db">
     <meta name="description" content="Analyseur de logs ClaimCenter - Outil PWA pour l'analyse des logs GuideWire">
     <title>Analyseur de Logs ClaimCenter</title>
-    <link rel="manifest" href="./app.webmanifest">
     <style>
         :root {
             --primary-color: #3498db;
@@ -775,18 +774,17 @@
             }
         }
 
-        // Fonction principale de recherche - Récupération depuis Kibana
+        // Fonction principale de recherche - Test des APIs Kibana réelles
         async function searchLogs() {
             const timeRange = document.getElementById('timeRange').value;
             const logLevel = document.getElementById('logLevel').value;
             const keyword = document.getElementById('searchKeyword').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
 
-            showStatus('🔄 Récupération des logs depuis Kibana...', 'loading');
+            showStatus('🔄 Test des APIs Kibana...', 'loading');
             
             try {
-                const kibanaUrl = buildKibanaDiscoverUrl(timeRange, logLevel, keyword);
-                const logs = await fetchLogsFromKibanaDiscover(kibanaUrl);
+                const logs = await testKibanaAPIs(timeRange, logLevel, keyword, maxResults);
                 
                 if (logs && logs.length > 0) {
                     logData = logs;
@@ -799,23 +797,226 @@
             } catch (error) {
                 console.error('Erreur de récupération:', error);
                 showStatus(`❌ Erreur: ${error.message}`, 'error');
-                
-                // Afficher les solutions
-                setTimeout(() => {
-                    const statusDiv = document.getElementById('statusSection');
-                    statusDiv.innerHTML += `
-                        <div style="margin-top: 15px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 8px;">
-                            <h4>💡 Solutions :</h4>
-                            <ul style="margin: 10px 0; padding-left: 20px;">
-                                <li>Vérifiez votre connexion au réseau interne</li>
-                                <li>Essayez de réduire la période de recherche</li>
-                                <li>Utilisez l'import de fichiers en alternative</li>
-                                <li>Contactez l'administrateur Kibana si le problème persiste</li>
-                            </ul>
-                        </div>
-                    `;
-                }, 500);
             }
+        }
+
+        async function testKibanaAPIs(timeRange, logLevel, keyword, maxResults) {
+            const baseUrl = 'https://kibana-basic.covea.priv:5621';
+            const space = 'openshift';
+            const index = 'covea-openshift-v4';
+            
+            // Construction de la requête Elasticsearch
+            const esQuery = buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults, index);
+            
+            // APIs à tester dans l'ordre de probabilité
+            const apis = [
+                // API 1: Console Proxy avec space
+                {
+                    url: `${baseUrl}/s/${space}/api/console/proxy`,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'kbn-xsrf': 'true',
+                        'kbn-version': '8.0.0'
+                    },
+                    body: JSON.stringify({
+                        path: `/${index}/_search`,
+                        method: 'POST',
+                        body: esQuery
+                    }),
+                    name: 'Console Proxy (avec space)'
+                },
+                
+                // API 2: Console Proxy sans space
+                {
+                    url: `${baseUrl}/api/console/proxy`,
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'kbn-xsrf': 'true'
+                    },
+                    body: JSON.stringify({
+                        path: `/${index}/_search`,
+                        method: 'POST',
+                        body: esQuery
+                    }),
+                    name: 'Console Proxy (sans space)'
+                },
+                
+                // API 3: Search API avec space
+                {
+                    url: `${baseUrl}/s/${space}/api/search`,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'kbn-xsrf': 'true'
+                    },
+                    body: JSON.stringify({
+                        index: index,
+                        body: esQuery
+                    }),
+                    name: 'Search API (avec space)'
+                },
+                
+                // API 4: Internal search
+                {
+                    url: `${baseUrl}/internal/search/es`,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'kbn-xsrf': 'true'
+                    },
+                    body: JSON.stringify({
+                        index: index,
+                        body: esQuery
+                    }),
+                    name: 'Internal Search'
+                },
+                
+                // API 5: Saved Objects Find
+                {
+                    url: `${baseUrl}/s/${space}/api/saved_objects/_find`,
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    name: 'Saved Objects Find'
+                },
+                
+                // API 6: Data views
+                {
+                    url: `${baseUrl}/s/${space}/api/data_views`,
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    name: 'Data Views API'
+                }
+            ];
+            
+            console.log('🎯 Test de', apis.length, 'APIs Kibana possibles...');
+            
+            for (const api of apis) {
+                try {
+                    console.log(`🌐 Test: ${api.name} - ${api.url}`);
+                    
+                    const requestOptions = {
+                        method: api.method,
+                        headers: api.headers,
+                        mode: 'cors',
+                        credentials: 'include'
+                    };
+                    
+                    if (api.body) {
+                        requestOptions.body = api.body;
+                    }
+                    
+                    const response = await fetch(api.url, requestOptions);
+                    
+                    console.log(`📡 ${api.name}: ${response.status} ${response.statusText}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Données reçues:', data);
+                        
+                        // Tenter de parser selon le type de réponse
+                        const logs = parseAPIResponse(data, api.name);
+                        if (logs.length > 0) {
+                            console.log(`🎉 SUCCÈS avec ${api.name}! ${logs.length} logs trouvés`);
+                            return logs;
+                        }
+                    } else if (response.status === 401) {
+                        console.log('🔐 Authentification requise');
+                    } else if (response.status === 403) {
+                        console.log('🚫 Accès interdit');
+                    } else if (response.status === 404) {
+                        console.log('❌ API non trouvée');
+                    }
+                    
+                } catch (error) {
+                    console.log(`❌ ${api.name}: ${error.message}`);
+                    if (error.message.includes('CORS')) {
+                        console.log('   → Bloqué par CORS');
+                    }
+                }
+            }
+            
+            throw new Error('Aucune API Kibana accessible. Utilisez l\'export CSV ou une extension anti-CORS.');
+        }
+
+        function buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults, index) {
+            const query = {
+                size: maxResults,
+                sort: [{"@timestamp": {"order": "desc"}}],
+                query: {
+                    bool: {
+                        must: [
+                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}},
+                            {"term": {"kubernetes.labels.environment": "prod"}}
+                        ]
+                    }
+                }
+            };
+
+            // Ajouter le filtre de niveau si spécifié
+            if (logLevel !== 'ALL') {
+                if (logLevel === 'ERROR') {
+                    query.query.bool.must.push({
+                        "terms": {"log.level": ["ERROR", "FATAL"]}
+                    });
+                } else {
+                    query.query.bool.must.push({
+                        "term": {"log.level": logLevel}
+                    });
+                }
+            }
+
+            // Ajouter le filtre par mot-clé si spécifié
+            if (keyword) {
+                query.query.bool.must.push({
+                    "wildcard": {"message": `*${keyword}*`}
+                });
+            }
+
+            console.log('🔍 Requête ES construite:', JSON.stringify(query, null, 2));
+            return query;
+        }
+
+        function parseAPIResponse(data, apiName) {
+            const logs = [];
+            
+            try {
+                // Parser selon le type d'API
+                if (apiName.includes('Console Proxy') || apiName.includes('Search')) {
+                    // Réponse Elasticsearch standard
+                    if (data.hits && data.hits.hits) {
+                        for (const hit of data.hits.hits) {
+                            logs.push(convertToLogFormat(hit._source));
+                        }
+                    }
+                } else if (apiName.includes('Saved Objects')) {
+                    // Réponse Saved Objects
+                    if (data.saved_objects) {
+                        console.log('📋 Saved objects trouvés:', data.saved_objects.length);
+                    }
+                } else if (apiName.includes('Data Views')) {
+                    // Réponse Data Views
+                    if (data.data_view) {
+                        console.log('📋 Data views disponibles:', data.data_view);
+                    }
+                }
+                
+                // Parser générique si structure inconnue
+                if (logs.length === 0 && data.hits) {
+                    console.log('🔄 Parsing générique...');
+                    // Continuer avec d'autres structures possibles
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur parsing réponse:', error);
+            }
+            
+            return logs;
         }
 
         function buildKibanaDiscoverUrl(timeRange, logLevel, keyword) {
@@ -862,67 +1063,294 @@
             try {
                 console.log('🌐 Tentative de récupération depuis:', kibanaUrl);
                 
-                const response = await fetch(kibanaUrl, {
-                    method: 'GET',
-                    mode: 'no-cors',  // Contournement CORS
-                    headers: {
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-                    },
-                    credentials: 'include'
-                });
+                // Essayer d'abord en mode normal pour lire le contenu
+                try {
+                    const response = await fetch(kibanaUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                            'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8'
+                        },
+                        mode: 'cors',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const htmlContent = await response.text();
+                        console.log('✅ HTML Kibana récupéré, parsing en cours...');
+                        return parseKibanaHTML(htmlContent);
+                    }
+                } catch (corsError) {
+                    console.log('❌ CORS bloqué, tentative avec proxy/iframe...');
+                }
                 
-                console.log('✅ Réponse reçue (mode no-cors):', response);
-                
-                // Avec no-cors, on ne peut pas lire le contenu
-                // Donc on simule des données pour le moment
-                return generateMockLogs();
+                // Si CORS bloque, essayer avec un iframe caché
+                return await fetchViaIframe(kibanaUrl);
                 
             } catch (error) {
-                console.log(`❌ Erreur Kibana: ${error.message}`);
-                throw new Error('Impossible de récupérer les données depuis Kibana. Essayez l\'import de fichiers.');
+                console.log(`❌ Erreur complète: ${error.message}`);
+                throw new Error('Impossible de récupérer les données depuis Kibana. Utilisez l\'export CSV ou une extension anti-CORS.');
             }
         }
 
-        function generateMockLogs() {
-            // Simulation de logs réalistes pour démonstration
-            const mockLogs = [
-                {
-                    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 min ago
-                    level: 'ERROR',
-                    logger: 'com.guidewire.claimcenter.server.ClaimService',
-                    message: 'Failed to process claim CC-2024-001234: NullPointerException in policy validation',
-                    originalLine: 'ERROR - ClaimService - Failed to process claim',
-                    fileName: 'Kibana',
-                    lineNumber: 1,
-                    errorType: 'NullPointerException',
-                    severity: 4
-                },
-                {
-                    timestamp: new Date(Date.now() - 1000 * 60 * 3).toISOString(), // 3 min ago
-                    level: 'WARN',
-                    logger: 'com.guidewire.claimcenter.database.ConnectionPool',
-                    message: 'Database connection pool reaching maximum capacity (95% full)',
-                    originalLine: 'WARN - ConnectionPool - Database connection pool reaching maximum',
-                    fileName: 'Kibana',
-                    lineNumber: 2,
-                    errorType: 'ConnectionException',
-                    severity: 3
-                },
-                {
-                    timestamp: new Date(Date.now() - 1000 * 60 * 1).toISOString(), // 1 min ago
-                    level: 'ERROR',
-                    logger: 'com.guidewire.claimcenter.integration.WebService',
-                    message: 'External service call failed: timeout after 30 seconds',
-                    originalLine: 'ERROR - WebService - External service call failed',
-                    fileName: 'Kibana',
-                    lineNumber: 3,
-                    errorType: 'TimeoutException',
-                    severity: 4
+        async function fetchViaIframe(kibanaUrl) {
+            return new Promise((resolve, reject) => {
+                // Créer un iframe caché
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.position = 'absolute';
+                iframe.style.top = '-9999px';
+                
+                iframe.onload = () => {
+                    try {
+                        // Tenter d'accéder au contenu de l'iframe
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const htmlContent = iframeDoc.documentElement.outerHTML;
+                        
+                        console.log('✅ HTML via iframe récupéré');
+                        document.body.removeChild(iframe);
+                        
+                        const logs = parseKibanaHTML(htmlContent);
+                        resolve(logs);
+                        
+                    } catch (error) {
+                        console.log('❌ Iframe bloqué aussi:', error.message);
+                        document.body.removeChild(iframe);
+                        reject(new Error('Accès iframe bloqué par les politiques de sécurité'));
+                    }
+                };
+                
+                iframe.onerror = () => {
+                    document.body.removeChild(iframe);
+                    reject(new Error('Erreur de chargement iframe'));
+                };
+                
+                document.body.appendChild(iframe);
+                iframe.src = kibanaUrl;
+                
+                // Timeout après 10 secondes
+                setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                        reject(new Error('Timeout iframe'));
+                    }
+                }, 10000);
+            });
+        }
+
+        function parseKibanaHTML(htmlContent) {
+            console.log('🔍 Parsing HTML Kibana, taille:', htmlContent.length);
+            
+            const logs = [];
+            
+            try {
+                // Créer un parser DOM
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                // Chercher les données dans le HTML
+                // Option 1: Chercher dans les scripts pour des données JSON
+                const scripts = doc.querySelectorAll('script');
+                for (const script of scripts) {
+                    const content = script.textContent || script.innerHTML;
+                    
+                    // Chercher des patterns de données de logs
+                    if (content.includes('hits') && content.includes('@timestamp')) {
+                        console.log('📦 Script avec données trouvé');
+                        const extractedLogs = extractLogsFromScript(content);
+                        if (extractedLogs.length > 0) {
+                            logs.push(...extractedLogs);
+                        }
+                    }
                 }
+                
+                // Option 2: Chercher dans les attributs data-*
+                const dataElements = doc.querySelectorAll('[data-shared-item], [data-test-subj*="log"], [data-test-subj*="row"]');
+                for (const element of dataElements) {
+                    const dataContent = element.getAttribute('data-shared-item') || element.textContent;
+                    if (dataContent && dataContent.includes('@timestamp')) {
+                        console.log('📦 Élément avec données trouvé');
+                        const extractedLogs = extractLogsFromElement(dataContent);
+                        if (extractedLogs.length > 0) {
+                            logs.push(...extractedLogs);
+                        }
+                    }
+                }
+                
+                // Option 3: Chercher dans le texte visible pour des patterns de logs
+                const bodyText = doc.body.textContent || doc.body.innerText || '';
+                const logPatterns = extractLogsFromText(bodyText);
+                if (logPatterns.length > 0) {
+                    logs.push(...logPatterns);
+                }
+                
+                console.log(`📋 ${logs.length} logs extraits du HTML`);
+                
+                if (logs.length === 0) {
+                    // Si aucun log trouvé, analyser la structure pour debug
+                    console.log('🔍 Structure HTML pour debug:');
+                    console.log('- Scripts:', scripts.length);
+                    console.log('- Data elements:', dataElements.length);
+                    console.log('- Body text length:', bodyText.length);
+                    
+                    // Chercher des indices de la structure Kibana
+                    const kibanaApp = doc.querySelector('[data-test-subj="kibanaChrome"]') || 
+                                     doc.querySelector('.application') ||
+                                     doc.querySelector('#kibana-body');
+                    
+                    if (kibanaApp) {
+                        console.log('✅ Interface Kibana détectée');
+                        // Chercher plus spécifiquement dans l'app Kibana
+                        const moreSpecificLogs = extractFromKibanaApp(kibanaApp);
+                        logs.push(...moreSpecificLogs);
+                    }
+                }
+                
+            } catch (parseError) {
+                console.error('❌ Erreur parsing HTML:', parseError);
+            }
+            
+            return logs.length > 0 ? logs : [];
+        }
+
+        function extractLogsFromScript(scriptContent) {
+            const logs = [];
+            
+            try {
+                // Chercher des objets JSON avec @timestamp
+                const jsonMatches = scriptContent.match(/\{[^{}]*"@timestamp"[^{}]*\}/g);
+                if (jsonMatches) {
+                    for (const match of jsonMatches) {
+                        try {
+                            const logData = JSON.parse(match);
+                            if (logData['@timestamp']) {
+                                logs.push(convertToLogFormat(logData));
+                            }
+                        } catch (e) {
+                            // JSON invalide, continuer
+                        }
+                    }
+                }
+                
+                // Chercher des arrays de hits
+                const hitsMatches = scriptContent.match(/"hits":\s*\[[^\]]+\]/g);
+                if (hitsMatches) {
+                    for (const match of hitsMatches) {
+                        try {
+                            const hitsData = JSON.parse(`{${match}}`);
+                            if (hitsData.hits && Array.isArray(hitsData.hits)) {
+                                for (const hit of hitsData.hits) {
+                                    if (hit._source) {
+                                        logs.push(convertToLogFormat(hit._source));
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // JSON invalide, continuer
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Erreur extraction script:', error);
+            }
+            
+            return logs;
+        }
+
+        function extractLogsFromElement(elementContent) {
+            const logs = [];
+            
+            try {
+                const logData = JSON.parse(elementContent);
+                if (logData['@timestamp'] || logData.timestamp) {
+                    logs.push(convertToLogFormat(logData));
+                }
+            } catch (e) {
+                // Pas du JSON, essayer d'autres patterns
+            }
+            
+            return logs;
+        }
+
+        function extractLogsFromText(text) {
+            const logs = [];
+            
+            // Chercher des patterns de logs dans le texte
+            const logPatterns = [
+                // Pattern ISO timestamp + level + message
+                /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[^\s]*)\s+(\w+)\s+(.+)/g,
+                // Pattern date simple + level + message  
+                /(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+(\w+)\s+(.+)/g
             ];
             
-            console.log('📋 Génération de logs de démonstration (CORS contourné)');
-            return mockLogs;
+            for (const pattern of logPatterns) {
+                let match;
+                while ((match = pattern.exec(text)) !== null && logs.length < 100) {
+                    logs.push({
+                        timestamp: match[1],
+                        level: match[2].toUpperCase(),
+                        message: match[3].trim(),
+                        logger: 'ExtractedFromHTML',
+                        originalLine: match[0],
+                        fileName: 'Kibana-HTML',
+                        lineNumber: logs.length + 1,
+                        errorType: detectErrorType(match[3]),
+                        severity: getSeverity(match[2].toUpperCase())
+                    });
+                }
+            }
+            
+            return logs;
+        }
+
+        function extractFromKibanaApp(kibanaApp) {
+            const logs = [];
+            
+            // Chercher dans les tables/grilles de données
+            const dataGrids = kibanaApp.querySelectorAll('[data-test-subj*="dataGrid"], [data-test-subj*="docTable"], .euiDataGrid, .kbnDocTable');
+            
+            for (const grid of dataGrids) {
+                const rows = grid.querySelectorAll('tr, [data-test-subj*="row"]');
+                for (const row of rows) {
+                    const cellTexts = Array.from(row.querySelectorAll('td, .euiDataGridRowCell')).map(cell => cell.textContent.trim());
+                    if (cellTexts.length > 0 && cellTexts.some(text => text.includes('ERROR') || text.includes('WARN'))) {
+                        // Tenter de reconstruire un log depuis les cellules
+                        logs.push(reconstructLogFromCells(cellTexts));
+                    }
+                }
+            }
+            
+            return logs;
+        }
+
+        function reconstructLogFromCells(cells) {
+            return {
+                timestamp: cells.find(c => c.match(/\d{4}-\d{2}-\d{2}/)) || new Date().toISOString(),
+                level: cells.find(c => ['ERROR', 'WARN', 'INFO', 'DEBUG'].includes(c.toUpperCase())) || 'INFO',
+                message: cells.find(c => c.length > 20) || cells.join(' '),
+                logger: 'KibanaTable',
+                originalLine: cells.join(' | '),
+                fileName: 'Kibana-Table',
+                lineNumber: 1,
+                errorType: detectErrorType(cells.join(' ')),
+                severity: getSeverity(cells.find(c => ['ERROR', 'WARN', 'INFO', 'DEBUG'].includes(c.toUpperCase())) || 'INFO')
+            };
+        }
+
+        function convertToLogFormat(sourceData) {
+            return {
+                timestamp: sourceData['@timestamp'] || sourceData.timestamp || new Date().toISOString(),
+                level: (sourceData.log?.level || sourceData.level || sourceData.severity || 'INFO').toUpperCase(),
+                message: sourceData.message || sourceData.msg || JSON.stringify(sourceData),
+                logger: sourceData.logger || sourceData.class || sourceData.component || sourceData.kubernetes?.container?.name || 'Unknown',
+                originalLine: JSON.stringify(sourceData),
+                fileName: 'Kibana-Parsed',
+                lineNumber: 1,
+                errorType: detectErrorType(sourceData.message || ''),
+                severity: getSeverity((sourceData.log?.level || sourceData.level || 'INFO').toUpperCase()),
+                _source: sourceData
+            };
         }
 
         function analyzeImportedFiles() {
