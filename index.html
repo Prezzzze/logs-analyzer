@@ -691,37 +691,49 @@
             document.getElementById('installBanner').classList.remove('show');
         }
 
-        // Service Worker Registration
+        // Service Worker Registration (version corrigée)
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swCode = `
-                    const CACHE_NAME = 'log-analyzer-v1';
-                    const urlsToCache = ['/'];
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('./sw.js');
+                    console.log('✅ Service Worker registered:', registration.scope);
                     
-                    self.addEventListener('install', (event) => {
-                        event.waitUntil(
-                            caches.open(CACHE_NAME)
-                                .then((cache) => cache.addAll(urlsToCache))
-                        );
+                    // Vérifier les mises à jour
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showStatus('🔄 Nouvelle version disponible ! Rechargez pour la mettre à jour.', 'loading');
+                            }
+                        });
                     });
                     
-                    self.addEventListener('fetch', (event) => {
-                        event.respondWith(
-                            caches.match(event.request)
-                                .then((response) => {
-                                    return response || fetch(event.request);
-                                })
-                        );
-                    });
-                `;
-                
-                const blob = new Blob([swCode], { type: 'application/javascript' });
-                const swUrl = URL.createObjectURL(blob);
-                
-                navigator.serviceWorker.register(swUrl)
-                    .then(() => console.log('Service Worker registered'))
-                    .catch(() => console.log('Service Worker registration failed'));
+                    // Forcer la vérification PWA après enregistrement
+                    setTimeout(checkPWAStatus, 2000);
+                    
+                } catch (error) {
+                    console.error('❌ Service Worker registration failed:', error);
+                    showStatus('⚠️ Service Worker non disponible - mode dégradé', 'error');
+                }
             });
+        }
+
+        // Vérification du statut PWA
+        function checkPWAStatus() {
+            // Vérifier que tout est OK pour PWA
+            const checks = {
+                serviceWorker: 'serviceWorker' in navigator,
+                manifest: document.querySelector('link[rel="manifest"]'),
+                https: location.protocol === 'https:' || location.hostname === 'localhost'
+            };
+
+            console.log('🔍 PWA Status:', checks);
+            
+            if (Object.values(checks).every(Boolean)) {
+                console.log('✅ PWA ready!');
+            } else {
+                console.warn('⚠️ PWA requirements not met:', checks);
+            }
         }
 
         // Fonction principale de recherche
