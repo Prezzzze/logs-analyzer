@@ -627,7 +627,8 @@
     <script>
         // Configuration PWA et URL de base
         const CONFIG = {
-            BASE_URL: 'https://kibana-basic.covea.priv:5621/s/openshift/app/discover#/',
+            KIBANA_BASE: 'https://kibana-basic.covea.priv:5621',
+            ES_API_BASE: 'https://kibana-basic.covea.priv:9200',
             INDEX: 'covea-openshift-v4'
         };
 
@@ -734,67 +735,147 @@
             }
         }
 
-        // Fonction principale de recherche - Redirection vers Kibana
+        // Fonction principale de recherche - Récupération depuis Kibana
         async function searchLogs() {
             const timeRange = document.getElementById('timeRange').value;
             const logLevel = document.getElementById('logLevel').value;
             const keyword = document.getElementById('searchKeyword').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
 
-            showStatus('🔄 Redirection vers Kibana...', 'loading');
+            showStatus('🔄 Récupération des logs depuis Kibana...', 'loading');
             
             try {
-                const kibanaUrl = buildKibanaUrl(timeRange, logLevel, keyword, maxResults);
+                const logs = await fetchLogsFromKibana(timeRange, logLevel, keyword, maxResults);
                 
-                // Rediriger vers Kibana avec les paramètres
-                window.open(kibanaUrl, '_blank');
-                
-                showStatus('✅ Ouverture de Kibana dans un nouvel onglet', 'success');
+                if (logs && logs.length > 0) {
+                    logData = logs;
+                    showStatus(`✅ ${logs.length} logs récupérés avec succès`, 'success');
+                    setTimeout(analyzeImportedFiles, 1000);
+                } else {
+                    showStatus('⚠️ Aucun log trouvé avec ces critères', 'error');
+                }
                 
             } catch (error) {
-                console.error('Erreur de construction URL:', error);
+                console.error('Erreur de récupération:', error);
                 showStatus(`❌ Erreur: ${error.message}`, 'error');
+                
+                // Afficher les solutions
+                setTimeout(() => {
+                    const statusDiv = document.getElementById('statusSection');
+                    statusDiv.innerHTML += `
+                        <div style="margin-top: 15px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 8px;">
+                            <h4>💡 Solutions :</h4>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Vérifiez votre connexion au réseau interne</li>
+                                <li>Essayez de réduire la période de recherche</li>
+                                <li>Utilisez l'import de fichiers en alternative</li>
+                                <li>Contactez l'administrateur Kibana si le problème persiste</li>
+                            </ul>
+                        </div>
+                    `;
+                }, 500);
             }
         }
 
-        function buildKibanaUrl(timeRange, logLevel, keyword, maxResults) {
-            // Construction de la query Kuery
-            let kueryParts = [];
-            
-            // Ajouter le filtre d'environnement par défaut
-            kueryParts.push('kubernetes.labels.environment : *prod*');
-            
+        async function fetchLogsFromKibana(timeRange, logLevel, keyword, maxResults) {
+            // Construction de la requête Elasticsearch
+            const esQuery = {
+                "size": maxResults,
+                "sort": [{"@timestamp": {"order": "desc"}}],
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}},
+                            {"wildcard": {"kubernetes.labels.environment": "*prod*"}}
+                        ]
+                    }
+                }
+            };
+
             // Ajouter le filtre de niveau si spécifié
             if (logLevel !== 'ALL') {
                 if (logLevel === 'ERROR') {
-                    kueryParts.push('(log.level : ERROR OR log.level : FATAL)');
+                    esQuery.query.bool.must.push({
+                        "terms": {"log.level": ["ERROR", "FATAL"]}
+                    });
                 } else {
-                    kueryParts.push(`log.level : ${logLevel}`);
+                    esQuery.query.bool.must.push({
+                        "term": {"log.level": logLevel}
+                    });
+                }
+            }
+
+            // Ajouter le filtre par mot-clé si spécifié
+            if (keyword) {
+                esQuery.query.bool.must.push({
+                    "wildcard": {"message": `*${keyword}*`}
+                });
+            }
+
+            // Essayer plusieurs endpoints possibles
+            const endpoints = [
+                `${CONFIG.ES_API_BASE}/${CONFIG.INDEX}/_search`,
+                `${CONFIG.KIBANA_BASE}/api/console/proxy?path=/${CONFIG.INDEX}/_search&method=POST`,
+                `${CONFIG.KIBANA_BASE}/elasticsearch/${CONFIG.INDEX}/_search`
+            ];
+
+            console.log('🔍 Requête ES:', JSON.stringify(esQuery, null, 2));
+
+            for (const endpoint of endpoints) {
+                try {
+                    console.log(`🌐 Tentative: ${endpoint}`);
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(esQuery),
+                        mode: 'cors'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Réponse reçue:', data);
+                        return parseElasticsearchResponse(data);
+                    } else {
+                        console.log(`❌ ${endpoint}: ${response.status} ${response.statusText}`);
+                    }
+                    
+                } catch (error) {
+                    console.log(`❌ ${endpoint}: ${error.message}`);
                 }
             }
             
-            // Ajouter le filtre par mot-clé si spécifié
-            if (keyword) {
-                kueryParts.push(`message : *${keyword}*`);
+            throw new Error('Impossible de se connecter à Kibana/Elasticsearch. Essayez l\'import de fichiers.');
+        }
+
+        function parseElasticsearchResponse(esResponse) {
+            if (!esResponse.hits || !esResponse.hits.hits) {
+                throw new Error('Réponse Elasticsearch invalide');
             }
-            
-            const kueryQuery = kueryParts.join(' AND ');
-            
-            // Conversion du timeRange en format Kibana
-            const timeFrom = `now-${timeRange}`;
-            const timeTo = 'now';
-            
-            // Construction manuelle de l'URL au format RISON (format Kibana)
-            const aParam = `(columns:!(),index:${CONFIG.INDEX},interval:auto,query:(language:kuery,query:'${encodeURIComponent(kueryQuery)}'),sort:!(('@timestamp',desc)))`;
-            const gParam = `(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:${timeFrom},to:${timeTo}))`;
-            
-            // Construction de l'URL finale
-            const finalUrl = `${CONFIG.BASE_URL}?_a=${aParam}&_g=${gParam}`;
-            
-            console.log('🔗 URL Kibana construite:', finalUrl);
-            console.log('📋 Query Kuery:', kueryQuery);
-            
-            return finalUrl;
+
+            return esResponse.hits.hits.map((hit, index) => {
+                const source = hit._source;
+                const timestamp = source['@timestamp'] || source.timestamp || new Date().toISOString();
+                const level = source.log?.level || source.level || source.severity || 'INFO';
+                const message = source.message || source.msg || JSON.stringify(source);
+                const logger = source.logger || source.class || source.component || source.kubernetes?.container?.name || 'Unknown';
+
+                return {
+                    timestamp: timestamp,
+                    level: level.toUpperCase(),
+                    logger: logger,
+                    message: message,
+                    originalLine: JSON.stringify(source),
+                    fileName: 'Kibana',
+                    lineNumber: index + 1,
+                    errorType: detectErrorType(message),
+                    severity: getSeverity(level.toUpperCase()),
+                    _source: source
+                };
+            });
         }
 
         function analyzeImportedFiles() {
