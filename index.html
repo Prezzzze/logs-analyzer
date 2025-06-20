@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db">
+    <meta name="description" content="Analyseur de logs ClaimCenter - Outil PWA pour l'analyse des logs GuideWire">
     <title>Analyseur de Logs ClaimCenter</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFuYWx5c2V1ciBkZSBMb2dzIENsYWltQ2VudGVyIiwKICAic2hvcnRfbmFtZSI6ICJMb2dBbmFseXplciIsCiAgImRlc2NyaXB0aW9uIjogIk91dGlsIGQnYW5hbHlzZSBkZXMgbG9ncyBwb3VyIEd1aWRlV2lyZSBDbGFpbUNlbnRlciIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiMzNDk4ZGIiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXhNakFpSUdobGFXZG9kRDBpTVRJd0lqNDhjbVZqZENCM2FXUjBhRDBpTVRJd0lpQm9aV2xuYUhROUlqRXlNQ0lpSUdacGJHdzlJaU16TkRrNFpHSWlMejQ4WldGaVBIQmhkR2dnWkQwaVRUUXdOalZqTFRJeExqSXhOaTB6T1M0eE16TXRNekl1TnpVMExUVXdMakk0WXkweE1TNDJPUzB4TlM0eE1UZ3RNVGt1TlRJNExUSTJMakkwTXkwek5DNDVOR0V4TWk0eE16UXhOUzR3TlRNNU1qRXVNell4TWpBdU9UWXpPUzR6TWpFek5TNDBPRGswT1M0eE9ESTNPUzR6TWpFM1BTZGFOVFF1TmpVek55MHRNVEF1TURnelpEUndiREV3Y3kwNU1DNHdPRE5rTlM0NVJESXhMamcxT1RjeElqNThMMmxzSUVacGJHdzlJaU00WmpnNVptRWlMejQ4TDJsY1BqeDBaWGgwSUhnOUlqWXdJaUI1UFNJek1DSWlJR1pwYkd3OUlpTXlZek5sTlRBaUlHWnZiblF0YzJsNlpUMGlNVFJ3ZUNJaVBqOGlQQzkwWlhoMFBqd3ZjM1puUGc9PSIsCiAgICAgICJzaXplcyI6ICIxMjB4MTIwIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l5TlRZaUlHaGxhV2RvZEQwaU1qVTJJajQ4Y21WamRDQjNhV1IwYUQwaU1qVTJJaUJvWldsbmFIUTlJakkxTmlJaVptbHNiRDBpSXpNME9UaGtZaUl2UGp4bGFXTnNaVEo5VERFeU9DNHhNelF4SURFeE1TNDBNamd1TXpJeElERXlNQzQ1TmpNeExqTTJNVEUwT1M0eE5qVXhJREUwT1M0eE5qVXhJQzB6TWk0M05UUXROVEF1TWpnemxNVFl1TmprekxTMHROREl1TVRSek5qZ3VOREF5TjNKaWIwUWdhVFFRek5ESXVORDQ1T1M0eE9ESk1NelE1ZERSSWR6aHlJaUI0WldsbGFIUTlJakkxTmlJalBqeDBaWGgwSUhnOUlqRXlPQ0lpSUhrOUlqRXlPQ0lpSUdacGJHdzlJaU15WXpObE5UQWlJR1p2Ym5RdGMybDZaVDBpTVRrd2VDSWlQano0SWo0OEwzUmxlSFErUEM5emRtYysKICAgICAgInNpemVzIjogIjI1NngyNTYiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
     <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --error-color: #e74c3c;
+            --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,9 +25,40 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--background-gradient);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .pwa-install-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .pwa-install-banner.show {
+            transform: translateY(0);
+        }
+
+        .pwa-install-banner button {
+            background: white;
+            color: var(--success-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         .container {
@@ -25,13 +68,26 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
+            margin-top: 20px;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
+        }
+
+        .header::after {
+            content: '📱 PWA';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
         }
 
         .header h1 {
@@ -49,32 +105,68 @@
             padding: 40px;
         }
 
-        .upload-section {
-            background: #f8f9fa;
-            border: 3px dashed #3498db;
+        .search-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 3px solid var(--primary-color);
             border-radius: 15px;
-            padding: 40px;
-            text-align: center;
+            padding: 30px;
             margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color), var(--warning-color));
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .search-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .control-group input, .control-group select {
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
             transition: all 0.3s ease;
+            background: white;
         }
 
-        .upload-section:hover {
-            border-color: #2980b9;
-            background: #ecf0f1;
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
-        .upload-section.dragover {
-            border-color: #27ae60;
-            background: #d5f4e6;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .upload-btn {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+        .search-btn {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
             color: white;
             padding: 15px 30px;
             border: none;
@@ -82,73 +174,91 @@
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin: 10px;
+            white-space: nowrap;
+            height: fit-content;
         }
 
-        .upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-        }
-
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-
-        .control-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .control-group input, .control-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .control-group input:focus, .control-group select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .analyze-btn {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 20px 0;
-        }
-
-        .analyze-btn:hover {
+        .search-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
         }
 
-        .analyze-btn:disabled {
+        .search-btn:disabled {
             background: #bdc3c7;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
 
+        .alternative-section {
+            background: #f8f9fa;
+            border: 2px dashed #bdc3c7;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .alternative-section:hover {
+            border-color: var(--primary-color);
+            background: #ecf0f1;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(52, 152, 219, 0.3);
+        }
+
+        .status-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #d5f4e6, rgba(39, 174, 96, 0.1));
+            border-left: 4px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #fadbd8, rgba(231, 76, 60, 0.1));
+            border-left: 4px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .status-loading {
+            background: linear-gradient(135deg, #d6eaf8, rgba(52, 152, 219, 0.1));
+            border-left: 4px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
         .results {
             margin-top: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .results.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .stats-grid {
@@ -163,30 +273,53 @@
             padding: 25px;
             border-radius: 15px;
             text-align: center;
-            border-left: 5px solid #3498db;
-            transition: transform 0.3s ease;
+            border-left: 5px solid var(--primary-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-card:hover::before {
+            transform: translateX(100%);
         }
 
         .stat-card.error {
-            border-left-color: #e74c3c;
+            border-left-color: var(--error-color);
         }
 
         .stat-card.warning {
-            border-left-color: #f39c12;
+            border-left-color: var(--warning-color);
         }
 
         .stat-card.info {
-            border-left-color: #3498db;
+            border-left-color: var(--primary-color);
         }
 
         .stat-number {
             font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .stat-label {
@@ -199,13 +332,18 @@
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             margin: 20px 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .error-details:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
         .error-header {
-            background: #e74c3c;
+            background: linear-gradient(135deg, var(--error-color), #c0392b);
             color: white;
             padding: 20px;
-            border-radius: 15px 15px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -217,7 +355,7 @@
 
         .error-type {
             font-weight: bold;
-            color: #e74c3c;
+            color: var(--error-color);
             margin-bottom: 10px;
         }
 
@@ -228,48 +366,58 @@
             margin: 15px 0;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
-            border-left: 4px solid #e74c3c;
+            border-left: 4px solid var(--error-color);
         }
 
-        .error-context {
-            margin-top: 15px;
+        .timeline {
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
         }
 
-        .error-context h4 {
-            color: #2c3e50;
-            margin-bottom: 10px;
+        .timeline h3 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .context-item {
-            background: #ecf0f1;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
+        .timeline-item {
+            display: flex;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .timeline-time {
+            font-weight: bold;
+            color: #7f8c8d;
+            min-width: 120px;
             font-size: 0.9rem;
         }
 
-        .hidden {
-            display: none;
+        .timeline-content {
+            flex: 1;
+            margin-left: 15px;
         }
 
-        .loading {
+        .export-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
             text-align: center;
-            padding: 40px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .export-btn {
@@ -279,7 +427,7 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            margin: 10px 5px;
+            margin: 5px;
             transition: all 0.3s ease;
         }
 
@@ -288,195 +436,182 @@
             box-shadow: 0 8px 16px rgba(155, 89, 182, 0.3);
         }
 
-        .timeline {
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
         }
 
-        .timeline h3 {
-            color: #2c3e50;
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
 
-        .timeline-item {
-            display: flex;
-            margin: 15px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-            border-left: 4px solid #3498db;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .timeline-time {
-            font-weight: bold;
-            color: #7f8c8d;
-            min-width: 120px;
+        .hidden {
+            display: none !important;
         }
 
-        .timeline-content {
-            flex: 1;
-            margin-left: 15px;
+        /* PWA Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .search-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .filter-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                border-radius: 10px;
+                margin-top: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
         }
 
-        .filter-section h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
+        /* PWA Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .container {
+                background: #2c3e50;
+                color: #ecf0f1;
+            }
 
-        .filter-controls {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
+            .control-group input, 
+            .control-group select {
+                background: #34495e;
+                color: #ecf0f1;
+                border-color: #4a5f7a;
+            }
 
-        .clear-btn {
-            background: #95a5a6;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
+            .timeline, 
+            .export-section,
+            .alternative-section {
+                background: #34495e;
+            }
 
-        .clear-btn:hover {
-            background: #7f8c8d;
-        }
-
-        .url-input-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-
-        .upload-divider {
-            position: relative;
-            margin: 30px 0;
-        }
-
-        .upload-divider hr {
-            border: none;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #ecf0f1, transparent);
-        }
-
-        .connection-success {
-            background: linear-gradient(135deg, #d5f4e6, #27ae60);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-        }
-
-        .connection-error {
-            background: linear-gradient(135deg, #fadbd8, #e74c3c);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
+            .stat-card {
+                background: linear-gradient(135deg, #34495e, #4a5f7a);
+                color: #ecf0f1;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="pwa-install-banner" id="installBanner">
+        📱 Installer cette app pour un accès rapide !
+        <button onclick="installPWA()">Installer</button>
+        <button onclick="hideInstallBanner()" style="background: transparent; color: white;">✕</button>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🔍 Analyseur de Logs ClaimCenter</h1>
-            <p>Outil d'analyse avancée des logs pour GuideWire ClaimCenter</p>
+            <p>Outil PWA d'analyse avancée des logs GuideWire ClaimCenter</p>
         </div>
 
         <div class="main-content">
-            <div class="upload-section" id="uploadSection">
-                <h2>🌐 Connexion à Kibana/Elasticsearch</h2>
-                <p>Entrez l'URL de votre requête Kibana ou l'endpoint Elasticsearch</p>
+            <div class="search-section">
+                <h2>🌐 Recherche dans les logs Kibana</h2>
                 
-                <div class="url-input-section">
-                    <div class="control-group">
-                        <label for="kibanaUrl">URL Kibana/Elasticsearch :</label>
-                        <input type="url" id="kibanaUrl" placeholder="https://kibana-basic.covea.priv:5621/s/openshift/app/discover#/..." style="width: 100%; margin-bottom: 15px;">
+                <div class="search-form">
+                    <div class="search-controls">
+                        <div class="control-group">
+                            <label for="timeRange">📅 Période :</label>
+                            <select id="timeRange">
+                                <option value="15m">15 dernières minutes</option>
+                                <option value="1h">1 heure</option>
+                                <option value="4h">4 heures</option>
+                                <option value="24h" selected>24 heures</option>
+                                <option value="7d">7 jours</option>
+                                <option value="30d">30 jours</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="logLevel">📊 Niveau minimum :</label>
+                            <select id="logLevel">
+                                <option value="ERROR" selected>ERROR</option>
+                                <option value="WARN">WARN</option>
+                                <option value="INFO">INFO</option>
+                                <option value="DEBUG">DEBUG</option>
+                                <option value="ALL">Tous</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="searchKeyword">🔍 Mot-clé :</label>
+                            <input type="text" id="searchKeyword" placeholder="Exception, Error, NullPointer...">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="maxResults">📋 Nb résultats :</label>
+                            <select id="maxResults">
+                                <option value="100">100</option>
+                                <option value="500" selected>500</option>
+                                <option value="1000">1000</option>
+                                <option value="5000">5000</option>
+                            </select>
+                        </div>
                     </div>
                     
-                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <div class="control-group" style="flex: 1;">
-                            <label for="username">Utilisateur (optionnel) :</label>
-                            <input type="text" id="username" placeholder="username">
-                        </div>
-                        <div class="control-group" style="flex: 1;">
-                            <label for="password">Mot de passe (optionnel) :</label>
-                            <input type="password" id="password" placeholder="password">
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="apiEndpoint">Ou URL API directe :</label>
-                        <input type="url" id="apiEndpoint" placeholder="https://elasticsearch:9200/logstash-*/_search" style="width: 100%; margin-bottom: 15px;">
-                    </div>
+                    <button class="search-btn" id="searchBtn" onclick="searchLogs()">
+                        🚀 Rechercher
+                    </button>
                 </div>
+            </div>
 
-                <button class="upload-btn" onclick="connectToKibana()">
-                    🔗 Se connecter et récupérer les logs
-                </button>
-                
-                <div class="upload-divider" style="margin: 20px 0; text-align: center; color: #7f8c8d;">
-                    <span style="background: white; padding: 0 15px;">OU</span>
-                    <hr style="margin: -12px 0 0 0; border: 1px solid #ecf0f1;">
-                </div>
-                
-                <h3>📁 Importer des fichiers de logs</h3>
-                <p>Glissez-déposez vos fichiers de logs ou cliquez pour les sélectionner</p>
+            <div class="alternative-section">
+                <h3>📁 Alternative : Import de fichiers</h3>
+                <p>Si la recherche directe ne fonctionne pas, importez vos fichiers de logs</p>
                 <input type="file" id="fileInput" class="file-input" multiple accept=".log,.txt,.json">
                 <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                     Choisir les fichiers
                 </button>
                 <div id="fileList"></div>
-                <div id="connectionStatus"></div>
             </div>
 
-            <div class="filter-section">
-                <h3>🔧 Filtres et Configuration</h3>
-                <div class="filter-controls">
-                    <div class="control-group">
-                        <label for="logLevel">Niveau de log minimum :</label>
-                        <select id="logLevel">
-                            <option value="ALL">Tous</option>
-                            <option value="ERROR" selected>ERROR</option>
-                            <option value="WARN">WARN</option>
-                            <option value="INFO">INFO</option>
-                            <option value="DEBUG">DEBUG</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label for="dateFrom">Date de début :</label>
-                        <input type="datetime-local" id="dateFrom">
-                    </div>
-                    <div class="control-group">
-                        <label for="dateTo">Date de fin :</label>
-                        <input type="datetime-local" id="dateTo">
-                    </div>
-                    <div class="control-group">
-                        <label for="searchKeyword">Mot-clé :</label>
-                        <input type="text" id="searchKeyword" placeholder="Exception, Error, etc.">
-                    </div>
-                </div>
-                <button class="clear-btn" onclick="clearFilters()">Effacer les filtres</button>
+            <div id="statusSection" class="status-section">
+                <div id="statusMessage"></div>
             </div>
-
-            <button class="analyze-btn" id="analyzeBtn" onclick="analyzeLog()" disabled>
-                🚀 Analyser les logs
-            </button>
 
             <div id="loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Analyse en cours...</p>
+                <p>🔄 Analyse en cours...</p>
             </div>
 
             <div id="results" class="results hidden">
@@ -484,10 +619,12 @@
                 
                 <div class="timeline" id="timeline"></div>
 
-                <div>
-                    <button class="export-btn" onclick="exportResults('json')">📄 Exporter JSON</button>
-                    <button class="export-btn" onclick="exportResults('csv')">📊 Exporter CSV</button>
-                    <button class="export-btn" onclick="exportResults('html')">🌐 Exporter HTML</button>
+                <div class="export-section">
+                    <h3>📤 Exporter les résultats</h3>
+                    <button class="export-btn" onclick="exportResults('json')">📄 JSON</button>
+                    <button class="export-btn" onclick="exportResults('csv')">📊 CSV</button>
+                    <button class="export-btn" onclick="exportResults('html')">🌐 HTML</button>
+                    <button class="export-btn" onclick="shareResults()">📱 Partager</button>
                 </div>
 
                 <div id="errorDetails"></div>
@@ -496,9 +633,16 @@
     </div>
 
     <script>
+        // Configuration PWA et URL de base (masquée)
+        const CONFIG = {
+            BASE_URL: 'https://kibana-basic.covea.priv:5621/s/openshift/app/discover',
+            ES_API_BASE: 'https://elasticsearch.covea.priv:9200',
+            DEFAULT_INDEX: 'logstash-*'
+        };
+
         let logData = [];
         let analysisResults = {};
-        let isConnectedToKibana = false;
+        let deferredPrompt;
 
         // Configuration pour les patterns d'erreurs GuideWire
         const errorPatterns = {
@@ -523,104 +667,187 @@
             'TRACE': 0
         };
 
-        async function connectToKibana() {
-            const kibanaUrl = document.getElementById('kibanaUrl').value;
-            const apiEndpoint = document.getElementById('apiEndpoint').value;
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const statusDiv = document.getElementById('connectionStatus');
-            
-            if (!kibanaUrl && !apiEndpoint) {
-                statusDiv.innerHTML = '<div style="color: #e74c3c; margin: 10px 0;">⚠️ Veuillez saisir une URL Kibana ou un endpoint API</div>';
-                return;
+        // PWA Installation
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBanner').classList.add('show');
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA installée');
+                    }
+                    deferredPrompt = null;
+                    hideInstallBanner();
+                });
             }
-            
-            statusDiv.innerHTML = '<div style="color: #3498db; margin: 10px 0;">🔄 Connexion en cours...</div>';
+        }
+
+        function hideInstallBanner() {
+            document.getElementById('installBanner').classList.remove('show');
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'log-analyzer-v1';
+                    const urlsToCache = ['/'];
+                    
+                    self.addEventListener('install', (event) => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME)
+                                .then((cache) => cache.addAll(urlsToCache))
+                        );
+                    });
+                    
+                    self.addEventListener('fetch', (event) => {
+                        event.respondWith(
+                            caches.match(event.request)
+                                .then((response) => {
+                                    return response || fetch(event.request);
+                                })
+                        );
+                    });
+                `;
+                
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl)
+                    .then(() => console.log('Service Worker registered'))
+                    .catch(() => console.log('Service Worker registration failed'));
+            });
+        }
+
+        // Fonction principale de recherche
+        async function searchLogs() {
+            const timeRange = document.getElementById('timeRange').value;
+            const logLevel = document.getElementById('logLevel').value;
+            const keyword = document.getElementById('searchKeyword').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+
+            showStatus('🔄 Connexion à Kibana...', 'loading');
             
             try {
-                let finalUrl = apiEndpoint || convertKibanaUrlToAPI(kibanaUrl);
-                const logs = await fetchLogsFromAPI(finalUrl, username, password);
+                const apiUrl = buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults);
+                const logs = await fetchLogsFromAPI(apiUrl);
                 
                 if (logs && logs.length > 0) {
                     logData = logs;
-                    isConnectedToKibana = true;
-                    document.getElementById('analyzeBtn').disabled = false;
-                    statusDiv.innerHTML = `<div style="color: #27ae60; margin: 10px 0;">✅ Connexion réussie! ${logs.length} logs récupérés</div>`;
+                    showStatus(`✅ ${logs.length} logs récupérés avec succès`, 'success');
+                    setTimeout(analyzeLog, 1000);
                 } else {
-                    statusDiv.innerHTML = '<div style="color: #f39c12; margin: 10px 0;">⚠️ Connexion réussie mais aucun log trouvé</div>';
+                    showStatus('⚠️ Aucun log trouvé avec ces critères', 'error');
                 }
                 
             } catch (error) {
-                console.error('Erreur de connexion:', error);
-                statusDiv.innerHTML = `<div style="color: #e74c3c; margin: 10px 0;">❌ Erreur: ${error.message}</div>`;
+                console.error('Erreur de recherche:', error);
+                showStatus(`❌ Erreur: ${error.message}`, 'error');
                 
-                // Proposer des solutions
-                statusDiv.innerHTML += `
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
-                        <h4>💡 Solutions possibles :</h4>
-                        <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>Vérifiez que l'URL est correcte</li>
-                            <li>Assurez-vous d'être connecté au VPN/réseau interne</li>
-                            <li>Essayez d'utiliser l'API Elasticsearch directement</li>
-                            <li>Vérifiez vos identifiants</li>
-                            <li>En cas de CORS, utilisez l'export de fichiers depuis Kibana</li>
-                        </ul>
-                    </div>
-                `;
+                // Afficher les solutions
+                setTimeout(() => {
+                    const statusDiv = document.getElementById('statusSection');
+                    statusDiv.innerHTML += `
+                        <div style="margin-top: 15px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 8px;">
+                            <h4>💡 Solutions :</h4>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Vérifiez votre connexion au réseau interne</li>
+                                <li>Essayez de réduire la période de recherche</li>
+                                <li>Utilisez l'import de fichiers en alternative</li>
+                                <li>Contactez l'administrateur Kibana si le problème persiste</li>
+                            </ul>
+                        </div>
+                    `;
+                }, 500);
             }
         }
-        
-        function convertKibanaUrlToAPI(kibanaUrl) {
-            // Tenter de convertir l'URL Kibana en URL API Elasticsearch
-            try {
-                const url = new URL(kibanaUrl);
-                const baseUrl = `${url.protocol}//${url.hostname}:9200`;
-                
-                // Extraire les paramètres de la query Kibana si possible
-                const hashParams = kibanaUrl.split('#')[1];
-                if (hashParams) {
-                    // Parser les paramètres pour construire la requête ES
-                    return `${baseUrl}/logstash-*/_search`;
-                }
-                
-                return `${baseUrl}/_search`;
-            } catch (error) {
-                throw new Error('URL Kibana invalide');
-            }
-        }
-        
-        async function fetchLogsFromAPI(apiUrl, username, password) {
-            const headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            };
-            
-            // Ajouter l'authentification si fournie
-            if (username && password) {
-                headers['Authorization'] = 'Basic ' + btoa(`${username}:${password}`);
-            }
-            
-            // Construire la requête Elasticsearch
-            const esQuery = {
-                "size": 1000,
+
+        function buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults) {
+            const query = {
+                "size": maxResults,
                 "sort": [{"@timestamp": {"order": "desc"}}],
                 "query": {
                     "bool": {
                         "must": [
-                            {"range": {"@timestamp": {"gte": "now-24h"}}},
-                            {"terms": {"level": ["ERROR", "WARN", "FATAL"]}}
+                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}}
                         ]
                     }
                 }
             };
-            
+
+            // Ajouter le filtre de niveau si spécifié
+            if (logLevel !== 'ALL') {
+                const levelFilter = logLevel === 'ERROR' 
+                    ? ["ERROR", "FATAL"] 
+                    : [logLevel];
+                query.query.bool.must.push({"terms": {"level": levelFilter}});
+            }
+
+            // Ajouter le filtre par mot-clé si spécifié
+            if (keyword) {
+                query.query.bool.must.push({
+                    "multi_match": {
+                        "query": keyword,
+                        "fields": ["message", "logger", "exception.message"],
+                        "type": "phrase_prefix"
+                    }
+                });
+            }
+
+            // Construire l'URL API
+            return `${CONFIG.ES_API_BASE}/${CONFIG.DEFAULT_INDEX}/_search`;
+        }
+
+        async function fetchLogsFromAPI(apiUrl) {
+            const timeRange = document.getElementById('timeRange').value;
+            const logLevel = document.getElementById('logLevel').value;
+            const keyword = document.getElementById('searchKeyword').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+
+            const esQuery = {
+                "size": maxResults,
+                "sort": [{"@timestamp": {"order": "desc"}}],
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}}
+                        ]
+                    }
+                }
+            };
+
+            if (logLevel !== 'ALL') {
+                const levelFilter = logLevel === 'ERROR' 
+                    ? ["ERROR", "FATAL"] 
+                    : [logLevel];
+                esQuery.query.bool.must.push({"terms": {"level": levelFilter}});
+            }
+
+            if (keyword) {
+                esQuery.query.bool.must.push({
+                    "multi_match": {
+                        "query": keyword,
+                        "fields": ["message", "logger", "exception.message"],
+                        "type": "phrase_prefix"
+                    }
+                });
+            }
+
             const options = {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(esQuery),
                 mode: 'cors'
             };
-            
+
             try {
                 const response = await fetch(apiUrl, options);
                 
@@ -633,24 +860,24 @@
                 
             } catch (error) {
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    throw new Error('Impossible de se connecter (CORS/réseau). Essayez d\'exporter les logs depuis Kibana.');
+                    throw new Error('Impossible de se connecter à Elasticsearch (CORS/réseau)');
                 }
                 throw error;
             }
         }
-        
+
         function parseElasticsearchResponse(esResponse) {
             if (!esResponse.hits || !esResponse.hits.hits) {
                 throw new Error('Réponse Elasticsearch invalide');
             }
-            
+
             return esResponse.hits.hits.map((hit, index) => {
                 const source = hit._source;
                 const timestamp = source['@timestamp'] || source.timestamp || new Date().toISOString();
                 const level = source.level || source.severity || 'INFO';
                 const message = source.message || source.msg || JSON.stringify(source);
                 const logger = source.logger || source.class || source.component || 'Unknown';
-                
+
                 return {
                     timestamp: timestamp,
                     level: level.toUpperCase(),
@@ -661,27 +888,40 @@
                     lineNumber: index + 1,
                     errorType: detectErrorType(message),
                     severity: getSeverity(level.toUpperCase()),
-                    _source: source // Garder la source originale pour debug
+                    _source: source
                 };
             });
         }
-        const uploadSection = document.getElementById('uploadSection');
-        
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.classList.add('dragover');
-        });
 
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('dragover');
-        });
+        function detectErrorType(message) {
+            for (const [type, pattern] of Object.entries(errorPatterns)) {
+                if (pattern.test(message)) {
+                    return type;
+                }
+            }
+            return 'Other';
+        }
 
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
+        function getSeverity(level) {
+            return logLevelPriority[level] || 1;
+        }
 
+        function showStatus(message, type) {
+            const statusSection = document.getElementById('statusSection');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusSection.className = `status-section status-${type}`;
+            statusMessage.innerHTML = message;
+            statusSection.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusSection.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Gestion des fichiers (alternative)
         document.getElementById('fileInput').addEventListener('change', (e) => {
             handleFiles(e.target.files);
         });
@@ -699,7 +939,6 @@
                     fileList.appendChild(fileDiv);
                 });
                 
-                document.getElementById('analyzeBtn').disabled = false;
                 loadFiles(files);
             }
         }
@@ -717,8 +956,12 @@
                 }
             }
             
-            // Trier par timestamp
             logData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            if (logData.length > 0) {
+                showStatus(`✅ ${logData.length} logs importés`, 'success');
+                setTimeout(analyzeLog, 1000);
+            }
         }
 
         function readFileContent(file) {
@@ -747,13 +990,9 @@
         }
 
         function parseLogLine(line, fileName, lineNumber) {
-            // Pattern pour les logs GuideWire/Java standard
             const patterns = [
-                // Pattern ISO 8601: 2024-01-15T10:30:45.123Z [ERROR] com.guidewire.package.Class - Message
                 /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})?)\s*\[(\w+)\]\s*([^\-]*?)\s*-\s*(.+)$/,
-                // Pattern standard: 2024-01-15 10:30:45,123 ERROR [com.guidewire.package.Class] Message
                 /^(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}[,\.]\d{3})\s+(\w+)\s+\[([^\]]+)\]\s*(.+)$/,
-                // Pattern simple: 2024-01-15 10:30:45 ERROR: Message
                 /^(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s+(\w+):\s*(.+)$/
             ];
             
@@ -774,7 +1013,6 @@
                 }
             }
             
-            // Si aucun pattern ne correspond, traiter comme une ligne de continuation
             return {
                 timestamp: new Date().toISOString(),
                 level: 'INFO',
@@ -788,22 +1026,9 @@
             };
         }
 
-        function detectErrorType(message) {
-            for (const [type, pattern] of Object.entries(errorPatterns)) {
-                if (pattern.test(message)) {
-                    return type;
-                }
-            }
-            return 'Other';
-        }
-
-        function getSeverity(level) {
-            return logLevelPriority[level] || 1;
-        }
-
         function analyzeLog() {
             if (logData.length === 0) {
-                alert('Aucun log à analyser. Veuillez d\'abord vous connecter à Kibana ou importer des fichiers.');
+                showStatus('Aucun log à analyser', 'error');
                 return;
             }
             
@@ -815,15 +1040,13 @@
                 displayResults();
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('results').classList.remove('hidden');
-            }, 1000);
+                document.getElementById('results').classList.add('show');
+            }, 1500);
         }
 
         function performAnalysis() {
-            const filteredLogs = applyFilters();
-            
             analysisResults = {
                 totalLogs: logData.length,
-                filteredLogs: filteredLogs.length,
                 errorsByType: {},
                 errorsByLevel: {},
                 timelineData: [],
@@ -831,8 +1054,7 @@
                 summary: {}
             };
 
-            // Analyser par type d'erreur
-            filteredLogs.forEach(log => {
+            logData.forEach(log => {
                 const type = log.errorType;
                 const level = log.level;
                 
@@ -840,8 +1062,7 @@
                 analysisResults.errorsByLevel[level] = (analysisResults.errorsByLevel[level] || 0) + 1;
             });
 
-            // Créer la timeline des erreurs importantes
-            const importantLogs = filteredLogs.filter(log => 
+            const importantLogs = logData.filter(log => 
                 log.level === 'ERROR' || log.level === 'FATAL' || log.level === 'WARN'
             );
 
@@ -853,45 +1074,18 @@
                 fileName: log.fileName
             }));
 
-            // Top erreurs
             const errorCounts = Object.entries(analysisResults.errorsByType)
                 .sort(([,a], [,b]) => b - a)
                 .slice(0, 5);
             
             analysisResults.topErrors = errorCounts;
 
-            // Résumé
             analysisResults.summary = {
                 criticalErrors: (analysisResults.errorsByLevel['ERROR'] || 0) + (analysisResults.errorsByLevel['FATAL'] || 0),
                 warnings: analysisResults.errorsByLevel['WARN'] || 0,
                 mostCommonError: errorCounts[0] ? errorCounts[0][0] : 'Aucune',
-                timeSpan: getTimeSpan(filteredLogs)
+                timeSpan: getTimeSpan(logData)
             };
-        }
-
-        function applyFilters() {
-            const levelFilter = document.getElementById('logLevel').value;
-            const dateFrom = document.getElementById('dateFrom').value;
-            const dateTo = document.getElementById('dateTo').value;
-            const keyword = document.getElementById('searchKeyword').value.toLowerCase();
-
-            return logData.filter(log => {
-                // Filtre par niveau
-                if (levelFilter !== 'ALL' && log.level !== levelFilter) {
-                    const minPriority = logLevelPriority[levelFilter];
-                    const logPriority = logLevelPriority[log.level];
-                    if (logPriority < minPriority) return false;
-                }
-
-                // Filtre par date
-                if (dateFrom && new Date(log.timestamp) < new Date(dateFrom)) return false;
-                if (dateTo && new Date(log.timestamp) > new Date(dateTo)) return false;
-
-                // Filtre par mot-clé
-                if (keyword && !log.message.toLowerCase().includes(keyword)) return false;
-
-                return true;
-            });
         }
 
         function getTimeSpan(logs) {
@@ -972,7 +1166,7 @@
             const errorDetails = document.getElementById('errorDetails');
             
             if (analysisResults.topErrors.length === 0) {
-                errorDetails.innerHTML = '<p>Aucune erreur détectée avec les filtres actuels.</p>';
+                errorDetails.innerHTML = '<p>Aucune erreur détectée.</p>';
                 return;
             }
 
@@ -987,11 +1181,12 @@
                         </div>
                         <div class="error-content">
                             <div class="error-type">Type d'erreur: ${type}</div>
-                            <div class="error-context">
+                            <div style="margin-top: 15px;">
                                 <h4>Exemples récents:</h4>
                                 ${relatedLogs.map(log => `
-                                    <div class="context-item">
-                                        <strong>${new Date(log.timestamp).toLocaleString('fr-FR')}</strong> - ${log.message.substring(0, 200)}${log.message.length > 200 ? '...' : ''}
+                                    <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; font-size: 0.9rem;">
+                                        <strong>${new Date(log.timestamp).toLocaleString('fr-FR')}</strong><br>
+                                        ${log.message.substring(0, 200)}${log.message.length > 200 ? '...' : ''}
                                     </div>
                                 `).join('')}
                             </div>
@@ -1003,22 +1198,15 @@
             errorDetails.innerHTML = errorCards;
         }
 
-        function clearFilters() {
-            document.getElementById('logLevel').value = 'ERROR';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
-            document.getElementById('searchKeyword').value = '';
-        }
-
         function exportResults(format) {
             const data = {
                 analysis: analysisResults,
                 timestamp: new Date().toISOString(),
                 filters: {
+                    timeRange: document.getElementById('timeRange').value,
                     level: document.getElementById('logLevel').value,
-                    dateFrom: document.getElementById('dateFrom').value,
-                    dateTo: document.getElementById('dateTo').value,
-                    keyword: document.getElementById('searchKeyword').value
+                    keyword: document.getElementById('searchKeyword').value,
+                    maxResults: document.getElementById('maxResults').value
                 }
             };
 
@@ -1037,65 +1225,54 @@
             }
         }
 
+        function shareResults() {
+            if (navigator.share) {
+                const summary = `Analyse des logs ClaimCenter:
+• ${analysisResults.summary.criticalErrors} erreurs critiques
+• ${analysisResults.summary.warnings} avertissements
+• Période: ${analysisResults.summary.timeSpan}
+• Erreur principale: ${analysisResults.summary.mostCommonError}`;
+
+                navigator.share({
+                    title: 'Analyse des Logs ClaimCenter',
+                    text: summary,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback: copier dans le presse-papier
+                const summary = `Analyse des logs ClaimCenter:
+• ${analysisResults.summary.criticalErrors} erreurs critiques
+• ${analysisResults.summary.warnings} avertissements  
+• Période: ${analysisResults.summary.timeSpan}
+• Erreur principale: ${analysisResults.summary.mostCommonError}`;
+
+                navigator.clipboard.writeText(summary).then(() => {
+                    showStatus('📋 Résumé copié dans le presse-papier', 'success');
+                });
+            }
+        }
+
         function convertToCSV(data) {
-            const headers = ['Type Erreur', 'Nombre Occurrences', 'Niveau', 'Pourcentage'];
+            const headers = ['Type Erreur', 'Nombre Occurrences', 'Pourcentage'];
             const rows = data.analysis.topErrors.map(([type, count]) => [
                 type,
                 count,
-                'ERROR',
-                ((count / data.analysis.filteredLogs) * 100).toFixed(2) + '%'
+                ((count / data.analysis.totalLogs) * 100).toFixed(2) + '%'
             ]);
 
             return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
         }
 
         function generateHTMLReport(data) {
-            return `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Rapport d'Analyse des Logs - ${new Date().toLocaleDateString('fr-FR')}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 40px; }
-                        .header { background: #3498db; color: white; padding: 20px; margin-bottom: 30px; }
-                        .stat { background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 4px solid #3498db; }
-                        .error { border-left-color: #e74c3c; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>📊 Rapport d'Analyse des Logs ClaimCenter</h1>
-                        <p>Généré le ${new Date().toLocaleString('fr-FR')}</p>
-                    </div>
-                    
-                    <div class="stat">
-                        <h3>📈 Statistiques Générales</h3>
-                        <p><strong>Total des logs analysés:</strong> ${data.analysis.totalLogs}</p>
-                        <p><strong>Erreurs critiques:</strong> ${data.analysis.summary.criticalErrors}</p>
-                        <p><strong>Avertissements:</strong> ${data.analysis.summary.warnings}</p>
-                        <p><strong>Période:</strong> ${data.analysis.summary.timeSpan}</p>
-                    </div>
-
-                    <table>
-                        <thead>
-                            <tr><th>Type d'Erreur</th><th>Occurrences</th><th>Pourcentage</th></tr>
-                        </thead>
-                        <tbody>
-                            ${data.analysis.topErrors.map(([type, count]) => `
-                                <tr>
-                                    <td>${type}</td>
-                                    <td>${count}</td>
-                                    <td>${((count / data.analysis.filteredLogs) * 100).toFixed(2)}%</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            `;
+            return `<!DOCTYPE html>
+<html><head><title>Rapport Logs ClaimCenter - ${new Date().toLocaleDateString('fr-FR')}</title>
+<style>body{font-family:Arial,sans-serif;margin:40px}.header{background:#3498db;color:white;padding:20px;margin-bottom:30px}.stat{background:#f8f9fa;padding:15px;margin:10px 0;border-left:4px solid #3498db}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ddd;padding:12px;text-align:left}th{background-color:#f2f2f2}</style>
+</head><body>
+<div class="header"><h1>📊 Rapport Logs ClaimCenter</h1><p>Généré le ${new Date().toLocaleString('fr-FR')}</p></div>
+<div class="stat"><h3>📈 Statistiques</h3><p><strong>Total:</strong> ${data.analysis.totalLogs}</p><p><strong>Erreurs critiques:</strong> ${data.analysis.summary.criticalErrors}</p><p><strong>Avertissements:</strong> ${data.analysis.summary.warnings}</p></div>
+<table><thead><tr><th>Type d'Erreur</th><th>Occurrences</th><th>%</th></tr></thead><tbody>
+${data.analysis.topErrors.map(([type, count]) => `<tr><td>${type}</td><td>${count}</td><td>${((count / data.analysis.totalLogs) * 100).toFixed(2)}%</td></tr>`).join('')}
+</tbody></table></body></html>`;
         }
 
         function downloadFile(filename, content, mimeType) {
@@ -1109,6 +1286,24 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        // Raccourcis clavier pour PWA
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'r':
+                        e.preventDefault();
+                        searchLogs();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        if (analysisResults.totalLogs > 0) {
+                            exportResults('json');
+                        }
+                        break;
+                }
+            }
+        });
     </script>
 </body>
 </html>
