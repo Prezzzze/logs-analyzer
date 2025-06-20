@@ -529,12 +529,13 @@
     <div class="container">
         <div class="header">
             <h1>🔍 Analyseur de Logs ClaimCenter</h1>
-            <p>Outil PWA d'analyse avancée des logs GuideWire ClaimCenter</p>
+            <p>Outil PWA pour Kibana + analyse locale des logs GuideWire ClaimCenter</p>
         </div>
 
         <div class="main-content">
             <div class="search-section">
-                <h2>🌐 Recherche dans les logs Kibana</h2>
+                <h2>🌐 Recherche dans Kibana</h2>
+                <p>Configure tes critères et ouvre directement dans Kibana avec les bons filtres</p>
                 
                 <div class="search-form">
                     <div class="search-controls">
@@ -578,17 +579,20 @@
                     </div>
                     
                     <button class="search-btn" id="searchBtn" onclick="searchLogs()">
-                        🚀 Rechercher
+                        🔗 Ouvrir dans Kibana
                     </button>
                 </div>
             </div>
 
             <div class="alternative-section">
-                <h3>📁 Alternative : Import de fichiers</h3>
-                <p>Si la recherche directe ne fonctionne pas, importez vos fichiers de logs</p>
+                <h3>📁 Alternative : Import et analyse de fichiers</h3>
+                <p>Importez vos fichiers de logs pour une analyse locale</p>
                 <input type="file" id="fileInput" class="file-input" multiple accept=".log,.txt,.json">
                 <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                     Choisir les fichiers
+                </button>
+                <button class="upload-btn" id="analyzeFilesBtn" onclick="analyzeImportedFiles()" style="display:none; background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                    🔍 Analyser les fichiers
                 </button>
                 <div id="fileList"></div>
             </div>
@@ -621,11 +625,10 @@
     </div>
 
     <script>
-        // Configuration PWA et URL de base (masquée)
+        // Configuration PWA et URL de base
         const CONFIG = {
-            BASE_URL: 'https://kibana-basic.covea.priv:5621/s/openshift/app/discover',
-            ES_API_BASE: 'https://elasticsearch.covea.priv:9200',
-            DEFAULT_INDEX: 'logstash-*'
+            BASE_URL: 'https://kibana-basic.covea.priv:5621/s/openshift/app/discover#/',
+            INDEX: 'covea-openshift-v4'
         };
 
         let logData = [];
@@ -731,173 +734,85 @@
             }
         }
 
-        // Fonction principale de recherche
+        // Fonction principale de recherche - Redirection vers Kibana
         async function searchLogs() {
             const timeRange = document.getElementById('timeRange').value;
             const logLevel = document.getElementById('logLevel').value;
             const keyword = document.getElementById('searchKeyword').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
 
-            showStatus('🔄 Connexion à Kibana...', 'loading');
+            showStatus('🔄 Redirection vers Kibana...', 'loading');
             
             try {
-                const apiUrl = buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults);
-                const logs = await fetchLogsFromAPI(apiUrl);
+                const kibanaUrl = buildKibanaUrl(timeRange, logLevel, keyword, maxResults);
                 
-                if (logs && logs.length > 0) {
-                    logData = logs;
-                    showStatus(`✅ ${logs.length} logs récupérés avec succès`, 'success');
-                    setTimeout(analyzeLog, 1000);
-                } else {
-                    showStatus('⚠️ Aucun log trouvé avec ces critères', 'error');
-                }
+                // Rediriger vers Kibana avec les paramètres
+                window.open(kibanaUrl, '_blank');
+                
+                showStatus('✅ Ouverture de Kibana dans un nouvel onglet', 'success');
                 
             } catch (error) {
-                console.error('Erreur de recherche:', error);
+                console.error('Erreur de construction URL:', error);
                 showStatus(`❌ Erreur: ${error.message}`, 'error');
-                
-                // Afficher les solutions
-                setTimeout(() => {
-                    const statusDiv = document.getElementById('statusSection');
-                    statusDiv.innerHTML += `
-                        <div style="margin-top: 15px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 8px;">
-                            <h4>💡 Solutions :</h4>
-                            <ul style="margin: 10px 0; padding-left: 20px;">
-                                <li>Vérifiez votre connexion au réseau interne</li>
-                                <li>Essayez de réduire la période de recherche</li>
-                                <li>Utilisez l'import de fichiers en alternative</li>
-                                <li>Contactez l'administrateur Kibana si le problème persiste</li>
-                            </ul>
-                        </div>
-                    `;
-                }, 500);
             }
         }
 
-        function buildElasticsearchQuery(timeRange, logLevel, keyword, maxResults) {
-            const query = {
-                "size": maxResults,
-                "sort": [{"@timestamp": {"order": "desc"}}],
-                "query": {
-                    "bool": {
-                        "must": [
-                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}}
-                        ]
-                    }
-                }
-            };
-
+        function buildKibanaUrl(timeRange, logLevel, keyword, maxResults) {
+            // Construction de la query Kuery
+            let kueryParts = [];
+            
+            // Ajouter le filtre d'environnement par défaut
+            kueryParts.push('kubernetes.labels.environment : *prod*');
+            
             // Ajouter le filtre de niveau si spécifié
             if (logLevel !== 'ALL') {
-                const levelFilter = logLevel === 'ERROR' 
-                    ? ["ERROR", "FATAL"] 
-                    : [logLevel];
-                query.query.bool.must.push({"terms": {"level": levelFilter}});
+                if (logLevel === 'ERROR') {
+                    kueryParts.push('(log.level : ERROR OR log.level : FATAL)');
+                } else {
+                    kueryParts.push(`log.level : ${logLevel}`);
+                }
             }
-
+            
             // Ajouter le filtre par mot-clé si spécifié
             if (keyword) {
-                query.query.bool.must.push({
-                    "multi_match": {
-                        "query": keyword,
-                        "fields": ["message", "logger", "exception.message"],
-                        "type": "phrase_prefix"
-                    }
-                });
+                kueryParts.push(`message : *${keyword}*`);
             }
-
-            // Construire l'URL API
-            return `${CONFIG.ES_API_BASE}/${CONFIG.DEFAULT_INDEX}/_search`;
+            
+            const kueryQuery = kueryParts.join(' AND ');
+            
+            // Conversion du timeRange en format Kibana
+            const timeFrom = `now-${timeRange}`;
+            const timeTo = 'now';
+            
+            // Construction manuelle de l'URL au format RISON (format Kibana)
+            const aParam = `(columns:!(),index:${CONFIG.INDEX},interval:auto,query:(language:kuery,query:'${encodeURIComponent(kueryQuery)}'),sort:!(('@timestamp',desc)))`;
+            const gParam = `(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:${timeFrom},to:${timeTo}))`;
+            
+            // Construction de l'URL finale
+            const finalUrl = `${CONFIG.BASE_URL}?_a=${aParam}&_g=${gParam}`;
+            
+            console.log('🔗 URL Kibana construite:', finalUrl);
+            console.log('📋 Query Kuery:', kueryQuery);
+            
+            return finalUrl;
         }
 
-        async function fetchLogsFromAPI(apiUrl) {
-            const timeRange = document.getElementById('timeRange').value;
-            const logLevel = document.getElementById('logLevel').value;
-            const keyword = document.getElementById('searchKeyword').value;
-            const maxResults = parseInt(document.getElementById('maxResults').value);
-
-            const esQuery = {
-                "size": maxResults,
-                "sort": [{"@timestamp": {"order": "desc"}}],
-                "query": {
-                    "bool": {
-                        "must": [
-                            {"range": {"@timestamp": {"gte": `now-${timeRange}`}}}
-                        ]
-                    }
-                }
-            };
-
-            if (logLevel !== 'ALL') {
-                const levelFilter = logLevel === 'ERROR' 
-                    ? ["ERROR", "FATAL"] 
-                    : [logLevel];
-                esQuery.query.bool.must.push({"terms": {"level": levelFilter}});
+        function analyzeImportedFiles() {
+            if (logData.length === 0) {
+                showStatus('Aucun fichier importé à analyser', 'error');
+                return;
             }
-
-            if (keyword) {
-                esQuery.query.bool.must.push({
-                    "multi_match": {
-                        "query": keyword,
-                        "fields": ["message", "logger", "exception.message"],
-                        "type": "phrase_prefix"
-                    }
-                });
-            }
-
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(esQuery),
-                mode: 'cors'
-            };
-
-            try {
-                const response = await fetch(apiUrl, options);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                return parseElasticsearchResponse(data);
-                
-            } catch (error) {
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    throw new Error('Impossible de se connecter à Elasticsearch (CORS/réseau)');
-                }
-                throw error;
-            }
-        }
-
-        function parseElasticsearchResponse(esResponse) {
-            if (!esResponse.hits || !esResponse.hits.hits) {
-                throw new Error('Réponse Elasticsearch invalide');
-            }
-
-            return esResponse.hits.hits.map((hit, index) => {
-                const source = hit._source;
-                const timestamp = source['@timestamp'] || source.timestamp || new Date().toISOString();
-                const level = source.level || source.severity || 'INFO';
-                const message = source.message || source.msg || JSON.stringify(source);
-                const logger = source.logger || source.class || source.component || 'Unknown';
-
-                return {
-                    timestamp: timestamp,
-                    level: level.toUpperCase(),
-                    logger: logger,
-                    message: message,
-                    originalLine: JSON.stringify(source),
-                    fileName: 'Kibana/ES',
-                    lineNumber: index + 1,
-                    errorType: detectErrorType(message),
-                    severity: getSeverity(level.toUpperCase()),
-                    _source: source
-                };
-            });
+            
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            
+            setTimeout(() => {
+                performAnalysis();
+                displayResults();
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('results').classList.add('show');
+            }, 1500);
         }
 
         function detectErrorType(message) {
@@ -946,7 +861,12 @@
                     fileList.appendChild(fileDiv);
                 });
                 
+                // Afficher le bouton d'analyse
+                document.getElementById('analyzeFilesBtn').style.display = 'inline-block';
+                
                 loadFiles(files);
+            } else {
+                document.getElementById('analyzeFilesBtn').style.display = 'none';
             }
         }
 
@@ -966,8 +886,7 @@
             logData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             if (logData.length > 0) {
-                showStatus(`✅ ${logData.length} logs importés`, 'success');
-                setTimeout(analyzeLog, 1000);
+                showStatus(`✅ ${logData.length} logs importés - Cliquez sur "Analyser" pour continuer`, 'success');
             }
         }
 
