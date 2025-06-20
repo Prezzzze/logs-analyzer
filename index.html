@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#3498db">
     <meta name="description" content="Analyseur de logs ClaimCenter - Outil PWA pour l'analyse des logs GuideWire">
     <title>Analyseur de Logs ClaimCenter</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFuYWx5c2V1ciBkZSBMb2dzIENsYWltQ2VudGVyIiwKICAic2hvcnRfbmFtZSI6ICJMb2dBbmFseXplciIsCiAgImRlc2NyaXB0aW9uIjogIk91dGlsIGQnYW5hbHlzZSBkZXMgbG9ncyBwb3VyIEd1aWRlV2lyZSBDbGFpbUNlbnRlciIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiMzNDk4ZGIiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXhNakFpSUdobGFXZG9kRDBpTVRJd0lqNDhjbVZqZENCM2FXUjBhRDBpTVRJd0lpQm9aV2xuYUhROUlqRXlNQ0lpSUdacGJHdzlJaU16TkRrNFpHSWlMejQ4WldGaVBIQmhkR2dnWkQwaVRUUXdOalZqTFRJeExqSXhOaTB6T1M0eE16TXRNekl1TnpVMExUVXdMakk0WXkweE1TNDJPUzB4TlM0eE1UZ3RNVGt1TlRJNExUSTJMakkwTXkwek5DNDVOR0V4TWk0eE16UXhOUzR3TlRNNU1qRXVNell4TWpBdU9UWXpPUzR6TWpFek5TNDBPRGswT1M0eE9ESTNPUzR6TWpFM1BTZGFOVFF1TmpVek55MHRNVEF1TURnelpEUndiREV3Y3kwNU1DNHdPRE5rTlM0NVJESXhMamcxT1RjeElqNThMMmxzSUVacGJHdzlJaU00WmpnNVptRWlMejQ4TDJsY1BqeDBaWGgwSUhnOUlqWXdJaUI1UFNJek1DSWlJR1pwYkd3OUlpTXlZek5sTlRBaUlHWnZiblF0YzJsNlpUMGlNVFJ3ZUNJaVBqOGlQQzkwWlhoMFBqd3ZjM1puUGc9PSIsCiAgICAgICJzaXplcyI6ICIxMjB4MTIwIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l5TlRZaUlHaGxhV2RvZEQwaU1qVTJJajQ4Y21WamRDQjNhV1IwYUQwaU1qVTJJaUJvWldsbmFIUTlJakkxTmlJaVptbHNiRDBpSXpNME9UaGtZaUl2UGp4bGFXTnNaVEo5VERFeU9DNHhNelF4SURFeE1TNDBNamd1TXpJeElERXlNQzQ1TmpNeExqTTJNVEUwT1M0eE5qVXhJREUwT1M0eE5qVXhJQzB6TWk0M05UUXROVEF1TWpnemxNVFl1TmprekxTMHROREl1TVRSek5qZ3VOREF5TjNKaWIwUWdhVFFRek5ESXVORDQ1T1M0eE9ESk1NelE1ZERSSWR6aHlJaUI0WldsbGFIUTlJakkxTmlJalBqeDBaWGgwSUhnOUlqRXlPQ0lpSUhrOUlqRXlPQ0lpSUdacGJHdzlJaU15WXpObE5UQWlJR1p2Ym5RdGMybDZaVDBpTVRrd2VDSWlQano0SWo0OEwzUmxlSFErUEM5emRtYysKICAgICAgInNpemVzIjogIjI1NngyNTYiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
     <style>
         :root {
             --primary-color: #3498db;
@@ -536,6 +537,15 @@
                 <h2>🌐 Récupération depuis Kibana</h2>
                 <p>Configure tes critères pour récupérer les logs depuis Kibana et les analyser ici</p>
                 
+                <div style="background: rgba(52, 152, 219, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #3498db;">
+                    <h4>🔧 Gestion CORS automatique :</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9rem;">
+                        <li><strong>Mode CORS</strong> : Essaie de lire les données (idéal)</li>
+                        <li><strong>Mode no-cors</strong> : Contournement si CORS bloque (fallback)</li>
+                        <li><strong>Test automatique</strong> de 6 APIs Kibana différentes</li>
+                    </ul>
+                </div>
+                
                 <div class="search-form">
                     <div class="search-controls">
                         <div class="control-group">
@@ -900,44 +910,69 @@
                 try {
                     console.log(`🌐 Test: ${api.name} - ${api.url}`);
                     
-                    const requestOptions = {
+                    // ÉTAPE 1: Essayer en mode CORS normal (pour lire les données)
+                    const corsOptions = {
                         method: api.method,
                         headers: api.headers,
-                        mode: 'cors',
+                        mode: 'cors',  // ✅ Mode normal pour lire les données
                         credentials: 'include'
                     };
                     
                     if (api.body) {
-                        requestOptions.body = api.body;
+                        corsOptions.body = api.body;
                     }
                     
-                    const response = await fetch(api.url, requestOptions);
-                    
-                    console.log(`📡 ${api.name}: ${response.status} ${response.statusText}`);
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('✅ Données reçues:', data);
+                    try {
+                        const response = await fetch(api.url, corsOptions);
+                        console.log(`📡 ${api.name} (CORS): ${response.status} ${response.statusText}`);
                         
-                        // Tenter de parser selon le type de réponse
-                        const logs = parseAPIResponse(data, api.name);
-                        if (logs.length > 0) {
-                            console.log(`🎉 SUCCÈS avec ${api.name}! ${logs.length} logs trouvés`);
-                            return logs;
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('✅ Données reçues (CORS):', data);
+                            
+                            const logs = parseAPIResponse(data, api.name);
+                            if (logs.length > 0) {
+                                console.log(`🎉 SUCCÈS avec ${api.name} (CORS)! ${logs.length} logs trouvés`);
+                                return logs;
+                            }
                         }
-                    } else if (response.status === 401) {
-                        console.log('🔐 Authentification requise');
-                    } else if (response.status === 403) {
-                        console.log('🚫 Accès interdit');
-                    } else if (response.status === 404) {
-                        console.log('❌ API non trouvée');
+                    } catch (corsError) {
+                        console.log(`❌ ${api.name} (CORS): ${corsError.message}`);
+                        
+                        // ÉTAPE 2: Si CORS échoue, essayer en mode no-cors (sans lecture)
+                        if (corsError.message.includes('CORS') || corsError.message.includes('cross-origin')) {
+                            console.log(`🔄 Tentative ${api.name} en mode no-cors...`);
+                            
+                            const noCorsOptions = {
+                                method: api.method,
+                                mode: 'no-cors',  // ✅ Contournement CORS
+                                credentials: 'include',
+                                // Headers limités en mode no-cors
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            };
+                            
+                            if (api.body) {
+                                noCorsOptions.body = api.body;
+                            }
+                            
+                            try {
+                                const noCorsResponse = await fetch(api.url, noCorsOptions);
+                                console.log(`📡 ${api.name} (no-cors): Request sent (response opaque)`);
+                                
+                                // Avec no-cors, on ne peut pas lire la réponse
+                                // Mais on peut au moins savoir que l'API existe
+                                console.log(`⚠️ ${api.name}: API accessible mais données non lisibles (mode no-cors)`);
+                                
+                            } catch (noCorsError) {
+                                console.log(`❌ ${api.name} (no-cors): ${noCorsError.message}`);
+                            }
+                        }
                     }
                     
                 } catch (error) {
                     console.log(`❌ ${api.name}: ${error.message}`);
-                    if (error.message.includes('CORS')) {
-                        console.log('   → Bloqué par CORS');
-                    }
                 }
             }
             
