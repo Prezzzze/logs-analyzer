@@ -529,19 +529,20 @@
     <div class="container">
         <div class="header">
             <h1>🔍 Analyseur de Logs ClaimCenter</h1>
-            <p>Interface claire pour analyser les logs GuideWire ClaimCenter depuis Kibana</p>
+            <p>Interface claire pour analyser les logs depuis Elasticsearch (maafprod.e-corail.com)</p>
         </div>
 
         <div class="main-content">
             <div class="search-section">
                 <h2>🔍 Récupération depuis Elasticsearch</h2>
-                <p>API directe : <code>elasticsearch.maafprod.e-corail.com:9220/maaf-bigdata-kafka-production-*</code></p>
+                <p>API directe avec pagination : <code>elasticsearch.maafprod.e-corail.com:9220/maaf-bigdata-kafka-production-*/_search?scroll=1m&size=100</code></p>
                 
                 <div style="background: rgba(39, 174, 96, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #27ae60;">
-                    <h4>✅ URL API directe configurée :</h4>
+                    <h4>✅ URL API avec pagination scroll :</h4>
                     <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9rem;">
                         <li><strong>Index</strong> : maaf-bigdata-kafka-production-*</li>
-                        <li><strong>Endpoint</strong> : _search</li>
+                        <li><strong>Scroll</strong> : 1 minute de timeout</li>
+                        <li><strong>Pagination</strong> : 100 logs par page automatique</li>
                         <li><strong>Gestion CORS</strong> automatique (cors + no-cors fallback)</li>
                     </ul>
                 </div>
@@ -579,16 +580,17 @@
                         <div class="control-group">
                             <label for="maxResults">📋 Nb résultats :</label>
                             <select id="maxResults">
-                                <option value="100">100</option>
-                                <option value="500" selected>500</option>
-                                <option value="1000">1000</option>
-                                <option value="5000">5000</option>
+                                <option value="100">100 (1 page)</option>
+                                <option value="200">200 (2 pages)</option>
+                                <option value="500" selected>500 (5 pages)</option>
+                                <option value="1000">1000 (10 pages)</option>
+                                <option value="2000">2000 (20 pages)</option>
                             </select>
                         </div>
                     </div>
                     
                     <button class="search-btn" id="searchBtn" onclick="searchLogs()">
-                        🚀 Récupérer les logs
+                        🚀 Récupérer depuis ES
                     </button>
                 </div>
             </div>
@@ -675,9 +677,9 @@
     </div>
 
     <script>
-        // Configuration avec l'URL API directe
+        // Configuration avec l'URL API directe + pagination
         const CONFIG = {
-            ES_API_URL: 'http://elasticsearch.maafprod.e-corail.com:9220/maaf-bigdata-kafka-production-*/_search'
+            ES_API_URL: 'http://elasticsearch.covea.priv.com:9220/maaf-bigdata-kafka-production-*/_search?scroll=1m&size=100'
         };
 
         let logData = [];
@@ -783,21 +785,22 @@
             }
         }
 
-        // Fonction principale de recherche - API Elasticsearch directe
+        // Fonction principale de recherche - API Elasticsearch directe avec pagination
         async function searchLogs() {
             const timeRange = document.getElementById('timeRange').value;
             const logLevel = document.getElementById('logLevel').value;
             const keyword = document.getElementById('searchKeyword').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
 
-            showStatus('🔄 Récupération des logs depuis Elasticsearch...', 'loading');
+            showStatus('🔄 Récupération des logs depuis Elasticsearch (pagination automatique)...', 'loading');
             
             try {
                 const logs = await fetchLogsFromElasticsearch(timeRange, logLevel, keyword, maxResults);
                 
                 if (logs && logs.length > 0) {
                     logData = logs;
-                    showStatus(`✅ ${logs.length} logs récupérés avec succès`, 'success');
+                    const pages = Math.ceil(logs.length / 100);
+                    showStatus(`✅ ${logs.length} logs récupérés avec succès (${pages} page${pages > 1 ? 's' : ''})`, 'success');
                     setTimeout(analyzeImportedFiles, 1000);
                 } else {
                     showStatus('⚠️ Aucun log trouvé avec ces critères', 'error');
@@ -827,8 +830,11 @@
 
         async function fetchLogsFromElasticsearch(timeRange, logLevel, keyword, maxResults) {
             // Construction de la requête Elasticsearch pour l'index maaf-bigdata-kafka-production-*
+            // Note: size est déjà dans l'URL (?size=100), donc on l'adapte si maxResults est différent
+            
+            const urlWithCustomSize = CONFIG.ES_API_URL.replace(/size=\d+/, `size=${Math.min(maxResults, 1000)}`);
+            
             const esQuery = {
-                size: maxResults,
                 sort: [{"@timestamp": {"order": "desc"}}],
                 query: {
                     bool: {
@@ -839,16 +845,26 @@
                 }
             };
 
-            // Ajouter le filtre de niveau si spécifié
+            // Ajouter le filtre de niveau si spécifié (adapter selon la structure des données MAAF)
             if (logLevel !== 'ALL') {
                 if (logLevel === 'ERROR') {
-                    esQuery.query.bool.must.push({
-                        "terms": {"log.level": ["ERROR", "FATAL"]}
-                    });
+                    // Essayer différents champs possibles pour le niveau
+                    esQuery.query.bool.should = [
+                        {"terms": {"level": ["ERROR", "FATAL"]}},
+                        {"terms": {"log.level": ["ERROR", "FATAL"]}},
+                        {"terms": {"severity": ["ERROR", "FATAL"]}},
+                        {"wildcard": {"message": "*ERROR*"}},
+                        {"wildcard": {"message": "*FATAL*"}}
+                    ];
+                    esQuery.query.bool.minimum_should_match = 1;
                 } else {
-                    esQuery.query.bool.must.push({
-                        "term": {"log.level": logLevel}
-                    });
+                    esQuery.query.bool.should = [
+                        {"term": {"level": logLevel}},
+                        {"term": {"log.level": logLevel}},
+                        {"term": {"severity": logLevel}},
+                        {"wildcard": {"message": `*${logLevel}*`}}
+                    ];
+                    esQuery.query.bool.minimum_should_match = 1;
                 }
             }
 
@@ -860,11 +876,27 @@
             }
 
             console.log('🔍 Requête ES construite:', JSON.stringify(esQuery, null, 2));
-            console.log('🌐 URL API:', CONFIG.ES_API_URL);
+            console.log('🌐 URL API avec scroll:', urlWithCustomSize);
 
-            // Essayer d'abord en mode CORS
             try {
-                const response = await fetch(CONFIG.ES_API_URL, {
+                // Première requête avec scroll
+                const allLogs = await fetchWithScroll(urlWithCustomSize, esQuery, maxResults);
+                return allLogs;
+
+            } catch (error) {
+                console.log(`❌ Erreur: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function fetchWithScroll(url, esQuery, maxResults) {
+            let allLogs = [];
+            let scrollId = null;
+            let remainingResults = maxResults;
+
+            try {
+                // Première requête
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -879,10 +911,24 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Données reçues:', data);
-                    return parseElasticsearchResponse(data);
+                    console.log('✅ Première page reçue:', data);
+                    
+                    const logs = parseElasticsearchResponse(data);
+                    allLogs.push(...logs);
+                    remainingResults -= logs.length;
+                    
+                    scrollId = data._scroll_id;
+                    console.log(`📊 Page 1: ${logs.length} logs récupérés, scroll_id: ${scrollId ? 'OK' : 'NONE'}`);
+
+                    // Si on a un scroll_id et qu'on veut plus de résultats, continuer la pagination
+                    if (scrollId && remainingResults > 0 && logs.length > 0) {
+                        const additionalLogs = await fetchScrollPages(scrollId, remainingResults);
+                        allLogs.push(...additionalLogs);
+                    }
+
+                    return allLogs;
+                    
                 } else {
-                    console.log('❌ Erreur HTTP:', response.status, response.statusText);
                     throw new Error(`Elasticsearch responded with ${response.status}: ${response.statusText}`);
                 }
 
@@ -893,7 +939,7 @@
                 try {
                     console.log('🔄 Tentative en mode no-cors...');
                     
-                    const noCorsResponse = await fetch(CONFIG.ES_API_URL, {
+                    await fetch(url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -909,6 +955,71 @@
                     throw new Error(`Impossible de se connecter à Elasticsearch: ${corsError.message}`);
                 }
             }
+        }
+
+        async function fetchScrollPages(scrollId, maxRemaining) {
+            const allLogs = [];
+            let currentScrollId = scrollId;
+            let remaining = maxRemaining;
+            let pageNum = 2;
+
+            while (currentScrollId && remaining > 0) {
+                try {
+                    // Mettre à jour le status pendant la pagination
+                    showStatus(`🔄 Récupération page ${pageNum}... (${allLogs.length} logs récupérés)`, 'loading');
+
+                    const scrollUrl = 'http://elasticsearch.maafprod.e-corail.com:9220/_search/scroll';
+                    const scrollQuery = {
+                        scroll: "1m",
+                        scroll_id: currentScrollId
+                    };
+
+                    console.log(`🔄 Récupération page ${pageNum}...`);
+
+                    const response = await fetch(scrollUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(scrollQuery),
+                        mode: 'cors',
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const logs = parseElasticsearchResponse(data);
+                        
+                        if (logs.length === 0) {
+                            console.log(`📄 Page ${pageNum}: Aucun résultat, fin de pagination`);
+                            break;
+                        }
+
+                        allLogs.push(...logs.slice(0, remaining));
+                        remaining -= logs.length;
+                        currentScrollId = data._scroll_id;
+                        
+                        console.log(`📊 Page ${pageNum}: ${logs.length} logs récupérés, restant: ${remaining}`);
+                        pageNum++;
+
+                        if (logs.length < 100) {
+                            console.log(`📄 Dernière page (moins de 100 résultats)`);
+                            break;
+                        }
+
+                    } else {
+                        console.log(`❌ Erreur scroll page ${pageNum}: ${response.status}`);
+                        break;
+                    }
+
+                } catch (error) {
+                    console.log(`❌ Erreur lors de la pagination: ${error.message}`);
+                    break;
+                }
+            }
+
+            return allLogs;
         }
 
         function parseElasticsearchResponse(esResponse) {
